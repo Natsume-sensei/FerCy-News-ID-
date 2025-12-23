@@ -69,10 +69,11 @@
         }
         .btn-primary { background: var(--primary-color); color: white; }
         .btn-success { background: #10b981; color: white; }
-        .btn-warning { background: #f59e0b; color: white; } /* NEW: Draft button */
+        .btn-warning { background: #f59e0b; color: white; } 
         .btn-outline { border: 1px solid var(--primary-color); color: var(--primary-color); background: transparent; }
         .btn-danger { background: #dc2626; color: white; }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         /* WIDGETS */
         #google_translate_element { margin-right: 15px; min-width: 120px; }
@@ -122,6 +123,10 @@
         .share-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: 0.3s; }
         .share-btn:hover { transform: scale(1.1); }
         .fb { background: #3b5998; } .tw { background: #1da1f2; } .wa { background: #25d366; }
+        
+        /* PAGINATION */
+        .pagination-container { grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 2rem; }
+        .page-info { font-size: 0.9rem; opacity: 0.8; }
         
         /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; overflow-y: auto; backdrop-filter: blur(5px); }
@@ -212,7 +217,7 @@
 
     <div class="container">
         <aside>
-            <input type="text" id="searchInput" class="search-box" placeholder="Cari artikel..." onkeyup="filterArticles()">
+            <input type="text" id="searchInput" class="search-box" placeholder="Cari artikel..." onkeyup="handleSearch()">
             <div class="sidebar-section">
                 <h3>Rubrik</h3>
                 <div class="cat-list">
@@ -238,6 +243,8 @@
 
         <main>
             <div class="articles-grid" id="articlesGrid"></div>
+            
+            <div class="pagination-container" id="paginationControls"></div>
         </main>
     </div>
 
@@ -422,11 +429,16 @@
             { id: 3, title: "Transformasi Pendidikan 2025", author: "Prof. Handoko", date: "2025-12-01", category: "Pendidikan", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", tags: ["#Edukasi"], status: 'published', content: "<h3>Sekolah Digital</h3><p>Belajar dari rumah...</p>" }
         ];
 
-        // FIX UNTUK DATA LAMA: Jika status 'undefined', set jadi 'published' agar muncul
+        // Normalisasi data lama
         articles = articles.map(a => {
             if(!a.status) a.status = 'published';
             return a;
         });
+
+        // --- OPTIMIZATION VARIABLES (PAGINATION) ---
+        const ITEMS_PER_PAGE = 9; // Batasi 9 artikel per halaman agar ringan
+        let currentPage = 1;
+        let currentFilteredArticles = []; // Menyimpan hasil filter sebelum dipaginasi
 
         // --- ADMIN LOGIC ---
         let isAdmin = false;
@@ -470,7 +482,6 @@
 
             sortedArticles.forEach(art => {
                 const statusBadge = art.status === 'published' ? `<span class="badge badge-published">Published</span>` : `<span class="badge badge-pending">Pending</span>`;
-                // Tombol centang cepat hanya untuk pending
                 const quickPublishBtn = art.status === 'pending' ? `<button class="btn btn-success" style="padding:0.3rem 0.6rem; font-size:0.8rem;" title="Publikasi Cepat" onclick="quickPublish(${art.id})"><i class="fas fa-check"></i></button>` : '';
 
                 tbody.innerHTML += `
@@ -487,11 +498,7 @@
         }
 
         // --- EDIT & PUBLISH LOGIC ---
-        
-        // Fungsi helper untuk menentukan status target saat tombol diklik
-        function setTargetStatus(status) {
-            document.getElementById('targetStatus').value = status;
-        }
+        function setTargetStatus(status) { document.getElementById('targetStatus').value = status; }
 
         function quickPublish(id) {
             if(confirm("Publikasikan artikel ini sekarang?")) {
@@ -504,7 +511,6 @@
             const art = articles.find(a => a.id === id);
             if(!art) return;
 
-            // Setup Form Data
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Artikel (Admin)';
             document.getElementById('postId').value = art.id;
             document.getElementById('postTitle').value = art.title;
@@ -514,8 +520,6 @@
             document.getElementById('postTags').value = art.tags.join(', ');
             quill.root.innerHTML = art.content;
 
-            // Setup Tombol
-            // Jika ADMIN, tampilkan 2 tombol (Draft & Publish) untuk semua artikel (termasuk yg lama)
             if(isAdmin) {
                 document.getElementById('userButtons').style.display = 'none';
                 document.getElementById('adminButtons').style.display = 'flex';
@@ -531,7 +535,7 @@
             e.preventDefault();
             
             const postId = document.getElementById('postId').value;
-            const targetStatus = document.getElementById('targetStatus').value; // 'pending' or 'published'
+            const targetStatus = document.getElementById('targetStatus').value;
             
             const title = document.getElementById('postTitle').value;
             const author = document.getElementById('postAuthor').value;
@@ -541,7 +545,6 @@
             const content = quill.root.innerHTML;
 
             if (postId) {
-                // --- UPDATE EXISTING ---
                 const index = articles.findIndex(a => a.id == postId);
                 if (index !== -1) {
                     articles[index].title = title;
@@ -550,17 +553,15 @@
                     articles[index].image = image;
                     articles[index].tags = tags;
                     articles[index].content = content;
-                    articles[index].status = targetStatus; // Update status sesuai tombol yg diklik
-                    
+                    articles[index].status = targetStatus;
                     alert(`Artikel berhasil diperbarui menjadi: ${targetStatus === 'published' ? 'PUBLISHED' : 'DRAFT'}`);
                 }
             } else {
-                // --- CREATE NEW ---
                 const newArt = {
                     id: Date.now(),
                     title: title, author: author, category: category, image: image, tags: tags, content: content,
                     date: new Date().toISOString().split('T')[0],
-                    status: 'pending' // Default user selalu pending
+                    status: 'pending'
                 };
                 articles.unshift(newArt);
                 alert("Artikel Berhasil Disubmit! Menunggu review admin.");
@@ -568,7 +569,7 @@
 
             localStorage.setItem('fercyArticles', JSON.stringify(articles));
             closeWriteModal();
-            renderArticles(); 
+            refreshAllData(); // Refresh all views
             if(isAdmin) renderAdminDashboard();
         }
 
@@ -585,27 +586,68 @@
             }
         }
         function toggleSelectAll(src) { document.querySelectorAll('.bulk-check').forEach(cb => cb.checked = src.checked); }
-        function saveAndRefresh() { localStorage.setItem('fercyArticles', JSON.stringify(articles)); renderAdminDashboard(); renderArticles(); }
+        function saveAndRefresh() { 
+            localStorage.setItem('fercyArticles', JSON.stringify(articles)); 
+            renderAdminDashboard(); 
+            refreshAllData(); 
+        }
 
-        // --- MAIN PAGE ---
+        // --- MAIN PAGE & OPTIMIZED RENDERING ---
         const themeToggle = document.getElementById('themeToggle');
         if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
         themeToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light'); });
 
         var quill = new Quill('#editor', { theme: 'snow', modules: { toolbar: [ [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'align': [] }], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image', 'video'], ['clean'] ] } });
 
-        function renderArticles(data = articles) {
-            const grid = document.getElementById('articlesGrid'); grid.innerHTML = '';
-            const published = data.filter(a => a.status === 'published'); // HANYA TAMPILKAN PUBLISHED
-            
-            published.forEach(art => {
+        // Fungsi inisialisasi awal
+        function refreshAllData() {
+            // Reset ke kondisi awal (Semua published)
+            filterArticlesByQueryAndCategory('', 'Semua', true); 
+        }
+
+        // Logic Utama Filtering (Search + Category)
+        function filterArticlesByQueryAndCategory(query, category, resetPage = true) {
+            if(resetPage) currentPage = 1;
+
+            currentFilteredArticles = articles.filter(a => {
+                const isPublished = a.status === 'published';
+                const matchCat = category === 'Semua' || a.category === category;
+                const matchQuery = query === '' || 
+                                   a.title.toLowerCase().includes(query.toLowerCase()) || 
+                                   a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()));
+                return isPublished && matchCat && matchQuery;
+            });
+
+            renderPaginatedGrid();
+            updateTrendingTags();
+            updateTicker();
+        }
+
+        // Fungsi Render Grid dengan Pagination (EFISIENSI TINGGI)
+        function renderPaginatedGrid() {
+            const grid = document.getElementById('articlesGrid');
+            grid.innerHTML = '';
+
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageData = currentFilteredArticles.slice(start, end);
+
+            if(pageData.length === 0) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 2rem; opacity:0.6;">Tidak ada artikel ditemukan.</div>';
+                document.getElementById('paginationControls').innerHTML = '';
+                return;
+            }
+
+            pageData.forEach(art => {
                 const shareText = encodeURIComponent(`Baca: "${art.title}"`);
                 const dummyUrl = encodeURIComponent("https://fercynews.com"); 
+                
                 const card = document.createElement('div'); card.className = 'article-card-container';
+                // Penambahan loading="lazy" untuk performa gambar
                 card.innerHTML = `
                     <div class="article-card">
                         <div class="card-front">
-                            <img src="${art.image}" class="card-img" alt="Cover">
+                            <img src="${art.image}" class="card-img" alt="Cover" loading="lazy">
                             <div class="card-content">
                                 <div class="card-cat">${art.category}</div>
                                 <h3 class="card-title">${art.title}</h3>
@@ -625,7 +667,56 @@
                     </div>`;
                 grid.appendChild(card);
             });
-            document.getElementById('tickerContent').innerHTML = published.slice(0,5).map(a => `<div class="ticker-item" onclick="openReadArticle(${a.id})">BREAKING: ${a.title}</div>`).join('');
+
+            renderPaginationControls();
+        }
+
+        // Render Tombol Pagination
+        function renderPaginationControls() {
+            const totalPages = Math.ceil(currentFilteredArticles.length / ITEMS_PER_PAGE);
+            const container = document.getElementById('paginationControls');
+            container.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Prev Button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'btn btn-outline';
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            if(currentPage === 1) prevBtn.disabled = true;
+            container.appendChild(prevBtn);
+
+            // Info Page
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'page-info';
+            pageInfo.innerText = `Halaman ${currentPage} dari ${totalPages}`;
+            container.appendChild(pageInfo);
+
+            // Next Button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'btn btn-outline';
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            if(currentPage === totalPages) nextBtn.disabled = true;
+            container.appendChild(nextBtn);
+        }
+
+        function changePage(newPage) {
+            currentPage = newPage;
+            renderPaginatedGrid();
+            // Scroll ke atas grid agar user nyaman
+            document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateTicker() {
+            // Ticker hanya menampilkan 5 artikel terbaru dari data global (bukan yang difilter) agar tetap breaking
+            const breaking = articles.filter(a => a.status === 'published').slice(0,5);
+            document.getElementById('tickerContent').innerHTML = breaking.map(a => `<div class="ticker-item" onclick="openReadArticle(${a.id})">BREAKING: ${a.title}</div>`).join('');
+        }
+
+        function updateTrendingTags() {
+            const published = articles.filter(a => a.status === 'published');
             let tags = [...new Set(published.flatMap(a => a.tags))];
             document.getElementById('trendingTags').innerHTML = tags.map(t => `<span class="tag" onclick="searchByTag('${t}')">${t}</span>`).join('');
         }
@@ -636,19 +727,30 @@
             document.getElementById('readModal').style.display = 'block';
         }
 
-        function filterArticles() { const q = document.getElementById('searchInput').value.toLowerCase(); renderArticles(articles.filter(a => a.status === 'published' && (a.title.toLowerCase().includes(q) || a.tags.some(t=>t.toLowerCase().includes(q))))); }
-        function filterByCategory(c) { renderArticles(c==='Semua' ? articles : articles.filter(a=>a.category===c)); }
-        function searchByTag(t) { document.getElementById('searchInput').value=t; filterArticles(); }
+        // Event Wrapper functions
+        function handleSearch() {
+            const q = document.getElementById('searchInput').value;
+            filterArticlesByQueryAndCategory(q, 'Semua');
+        }
+
+        function filterByCategory(c) {
+            // Reset search box visual
+            document.getElementById('searchInput').value = ''; 
+            filterArticlesByQueryAndCategory('', c);
+        }
+
+        function searchByTag(t) {
+            document.getElementById('searchInput').value = t;
+            filterArticlesByQueryAndCategory(t, 'Semua');
+        }
 
         function openWriteModal() { 
-            // Reset for User
             document.getElementById('articleForm').reset();
             document.getElementById('postId').value = "";
             document.getElementById('targetStatus').value = "pending";
             quill.root.innerHTML = "";
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Kontribusi Artikel';
             
-            // Toggle Button Views
             if(isAdmin) {
                 document.getElementById('userButtons').style.display = 'none';
                 document.getElementById('adminButtons').style.display = 'flex';
@@ -658,6 +760,7 @@
             }
             document.getElementById('writeModal').style.display = 'block'; 
         }
+
         function closeWriteModal() { document.getElementById('writeModal').style.display = 'none'; }
         function openLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
@@ -666,7 +769,8 @@
         function closePedomanModal() { document.getElementById('pedomanModal').style.display = 'none'; }
         window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; };
 
-        renderArticles();
+        // Initial Load
+        refreshAllData();
     </script>
 </body>
 </html>
