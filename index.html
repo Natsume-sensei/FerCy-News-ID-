@@ -327,7 +327,7 @@
                 </div>
                 
                 <div id="userButtons" style="margin-top: 1.5rem;">
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;" onclick="setTargetStatus('pending')">Submit Artikel</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Submit Artikel</button>
                 </div>
 
                 <div id="adminButtons" style="display: flex; gap: 10px; margin-top: 1.5rem; display: none;">
@@ -447,7 +447,6 @@
         const articlesRef = db.ref('articles');
 
         // --- DATA & SETUP ---
-        // Variabel global 'articles' sekarang kosong dulu, nanti diisi dari Firebase
         let articles = []; 
 
         const defaultArticles = [
@@ -457,24 +456,17 @@
         ];
 
         // --- LISTENER REALTIME (JANTUNG APLIKASI) ---
-        // Kode ini akan berjalan otomatis setiap ada data berubah di Database Firebase
         articlesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // Convert object Firebase ke Array
                 articles = Object.values(data);
             } else {
-                // Jika database kosong (pertama kali), upload data default
                 defaultArticles.forEach(art => {
                     articlesRef.child(art.id).set(art);
                 });
                 articles = defaultArticles;
             }
-            
-            // Urutkan artikel terbaru (berdasarkan ID/Timestamp)
             articles.sort((a, b) => b.id - a.id);
-            
-            // Refresh Tampilan
             refreshAllData();
             if(isAdmin) renderAdminDashboard();
         });
@@ -604,6 +596,10 @@
                 .then(() => {
                     alert(`Artikel berhasil diperbarui menjadi: ${targetStatus === 'published' ? 'PUBLISHED' : 'DRAFT'}`);
                     closeWriteModal();
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                    alert("Gagal update artikel: " + error.message);
                 });
             } else {
                 // --- CREATE NEW (FIREBASE) ---
@@ -611,10 +607,15 @@
                 articleData.id = newId;
                 
                 // Simpan ke Firebase dengan ID sebagai key
+                // PERBAIKAN: Menambahkan .catch untuk menangkap error permission/koneksi
                 articlesRef.child(newId).set(articleData)
                 .then(() => {
                     alert("Artikel Berhasil Disubmit! Menunggu review admin.");
                     closeWriteModal();
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                    alert("Gagal mengirim artikel: " + error.message + ". Pastikan koneksi internet lancar.");
                 });
             }
         }
