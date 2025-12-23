@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FerCy News ID Portal</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --accent-color: #f59e0b;
+            --bg-light: #f3f4f6;
+            --text-light: #1f2937;
+            --card-light: #ffffff;
+            --bg-dark: #111827;
+            --text-dark: #f9fafb;
+            --card-dark: #1f2937;
+            --border-light: #e5e7eb;
+            --border-dark: #374151;
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 1. Theme Setup */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            transition: var(--transition);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            top: 0 !important; /* Fix Google Translate bar pushing body */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .card, body.dark-mode header, body.dark-mode .modal-content {
+            background-color: var(--card-dark);
+            color: var(--text-dark);
+            border-color: var(--border-dark);
+        }
+        
+        body.dark-mode input, body.dark-mode select, body.dark-mode .ql-toolbar, body.dark-mode .ql-container {
+            background-color: #374151;
+            color: white;
+            border-color: #4b5563;
+        }
+        
+        body.dark-mode .ql-stroke { stroke: #fff; }
+        body.dark-mode .ql-fill { fill: #fff; }
+        
+        .ql-editor { text-align: left; }
+        .ql-align-center { text-align: center; }
+        .ql-align-right { text-align: right; }
+        .ql-align-justify { text-align: justify; }
+
+        /* Typography */
+        h1, h2, h3, .article-title { font-family: 'Merriweather', serif; }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2%; /* Padding disesuaikan agar lebih lebar */
+            background: var(--card-light);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); cursor: pointer;}
+        .logo span { color: var(--accent-color); }
+
+        .nav-tools { display: flex; gap: 1rem; align-items: center; }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-outline { border: 1px solid var(--primary-color); color: var(--primary-color); background: transparent; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* Translate Widget Styling Fix */
+        #google_translate_element {
+            margin-right: 15px;
+            min-width: 120px;
+        }
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: 1px solid var(--primary-color) !important;
+            padding: 5px !important;
+            border-radius: 6px !important;
+        }
+        .goog-te-gadget-simple span { color: var(--primary-color) !important; font-weight: bold; }
+        .goog-te-banner-frame { display: none !important; }
+
+        /* Ticker */
+        .ticker-wrap {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            height: 40px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .ticker-heading { 
+            background: #1e40af; 
+            padding: 0 1rem; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            font-weight: bold; 
+            z-index: 10;
+        }
+        .ticker-move {
+            display: inline-block;
+            white-space: nowrap;
+            padding-right: 100%;
+            animation: ticker 30s linear infinite;
+        }
+        .ticker-item { display: inline-block; padding: 0 2rem; cursor: pointer; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        /* Layout Fix: Full Width */
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+            padding: 2rem 1.5%; /* Padding dikurangi agar lebih ke tepi */
+            max-width: 100%;    /* Lebar penuh */
+            width: 100%;
+            box-sizing: border-box; /* Mencegah scroll horizontal */
+            margin: 0;
+            flex: 1; 
+        }
+
+        /* Sidebar */
+        .sidebar-section { margin-bottom: 2rem; }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .tag {
+            font-size: 0.85rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .cat-item {
+            display: block;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+        }
+        body.dark-mode .cat-item { border-color: var(--border-dark); }
+
+        .search-box {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Card Flip Design */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+
+        .article-card-container {
+            perspective: 1000px;
+            height: 420px; 
+        }
+
+        .article-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: left;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+
+        .article-card-container:hover .article-card {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--card-light);
+        }
+        
+        body.dark-mode .card-front, body.dark-mode .card-back { background: var(--card-dark); }
+
+        /* Front Styling */
+        .card-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        .card-content { padding: 1.5rem; }
+        .card-cat { color: var(--accent-color); font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+        .card-title { font-size: 1.2rem; margin: 0.5rem 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
+        .card-meta { font-size: 0.8rem; color: #6b7280; display: flex; justify-content: space-between; margin-top: auto; }
+
+        /* Back Styling */
+        .card-back {
+            transform: rotateY(180deg);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, var(--card-light) 0%, #f0f9ff 100%);
+        }
+        body.dark-mode .card-back { background: linear-gradient(135deg, var(--card-dark) 0%, #111827 100%); }
+
+        .share-buttons { margin: 1.5rem 0; display: flex; gap: 1rem; }
+        .share-btn { 
+            width: 40px; height: 40px; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; text-decoration: none;
+            transition: 0.3s; 
+        }
+        .share-btn:hover { transform: scale(1.1); }
+        .fb { background: #3b5998; } .tw { background: #1da1f2; } .wa { background: #25d366; }
+        
+        /* Modal Global */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: var(--card-light);
+            margin: 2% auto; /* Margin atas sedikit dikurangi */
+            width: 90%;
+            max-width: 900px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.3s ease-out;
+            padding: 0; /* Padding dihilangkan agar gambar header full */
+        }
+
+        .form-content { padding: 20px; } /* Khusus form tetap pakai padding */
+        
+        /* Small Modal for Login */
+        .modal-small { max-width: 400px; margin-top: 15%; padding: 2rem; text-align: center; }
+
+        /* FIX: Tombol Close (X) agar terlihat jelas */
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6); /* Latar belakang hitam transparan */
+            border-radius: 50%; /* Bentuk bulat */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #ffffff !important; /* Warna putih paksa */
+            z-index: 2000; /* Z-index sangat tinggi agar di atas gambar */
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .close:hover {
+            background: #dc2626; /* Merah saat hover */
+            transform: rotate(90deg);
+        }
+
+        /* ADMIN DASHBOARD STYLES */
+        .admin-dashboard { width: 95%; max-width: 1200px; margin: 2% auto; padding: 20px; }
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(37, 99, 235, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--primary-color);
+        }
+        .stat-number { font-size: 3rem; font-weight: bold; color: var(--primary-color); }
+        
+        /* Pie Chart CSS Only */
+        .pie-chart-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            background: rgba(255,255,255,0.05);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+        }
+        .pie-chart {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 0deg 360deg);
+        }
+        .legend { font-size: 0.85rem; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+        .legend-color { width: 12px; height: 12px; border-radius: 2px; }
+
+        /* Admin Table */
+        .admin-table-container { overflow-x: auto; }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .admin-table th, .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+        body.dark-mode .admin-table th, body.dark-mode .admin-table td { border-color: var(--border-dark); }
+        .admin-table th { background: rgba(0,0,0,0.05); font-weight: 600; }
+        body.dark-mode .admin-table th { background: rgba(255,255,255,0.05); }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Form Styles */
+        .form-group { margin-bottom: 1.5rem; text-align: left; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-input {
+            width: 100%; padding: 0.8rem;
+            border: 1px solid #ccc; border-radius: 6px;
+            background: transparent; color: inherit;
+            box-sizing: border-box;
+        }
+        #editor { height: 300px; }
+
+        /* Read Styles */
+        .read-header { position: relative; height: 350px; width: 100%; }
+        .read-cover {
+            width: 100%; height: 100%; object-fit: cover;
+            border-top-left-radius: 12px; border-top-right-radius: 12px;
+            /* Efek gradasi agar teks terbaca jika ada, tapi tidak menutupi gambar */
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+        .read-body { padding: 2rem 3rem; }
+        .read-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
+        
+        /* Utility */
+        .ql-align-center { text-align: center; }
+        .ql-align-right { text-align: right; }
+        .ql-align-justify { text-align: justify; }
+
+        /* FOOTER STYLES */
+        .site-footer {
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-light);
+            padding: 3rem 2% 1rem 2%;
+            margin-top: 4rem;
+        }
+        body.dark-mode .site-footer {
+            background-color: var(--card-dark);
+            border-color: var(--border-dark);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .footer-col h4 {
+            color: var(--primary-color);
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-links a {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: inherit;
+            text-decoration: none;
+            transition: 0.3s;
+            opacity: 0.8;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+            padding-left: 5px;
+            opacity: 1;
+        }
+
+        .footer-social-share {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-share-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+        body.dark-mode .footer-share-btn {
+            background: #374151;
+            color: #fff;
+        }
+
+        .footer-share-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .copyright-bar {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        body.dark-mode .copyright-bar { border-color: var(--border-dark); }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+            .dashboard-stats { grid-template-columns: 1fr; }
+            .pie-chart-container { flex-direction: column; }
+            .nav-tools { flex-wrap: wrap; justify-content: center; gap: 0.5rem;}
+            .read-body { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="location.reload()"><i class="fas fa-newspaper"></i> FerCy<span>News ID</span></div>
+        
+        <div class="nav-tools">
+            <div id="google_translate_element"></div>
+
+            <button id="adminBtn" class="btn btn-outline" onclick="handleAdminClick()">
+                <i class="fas fa-user-lock"></i> <span id="adminText">Login Admin</span>
+            </button>
+
+            <button id="themeToggle" class="btn btn-outline" title="Ganti Tema">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn btn-primary" onclick="openWriteModal()">
+                <i class="fas fa-pen-nib"></i> Tulis Artikel
+            </button>
+        </div>
+    </header>
+
+    <div class="ticker-wrap">
+        <div class="ticker-heading">BREAKING NEWS</div>
+        <div class="ticker-move" id="tickerContent"></div>
+    </div>
+
+    <div class="container">
+        <aside>
+            <input type="text" id="searchInput" class="search-box" placeholder="Cari artikel..." onkeyup="filterArticles()">
+
+            <div class="sidebar-section">
+                <h3>Rubrik</h3>
+                <div class="cat-list">
+                    <span class="cat-item" onclick="filterByCategory('Semua')">Semua</span>
+                    <span class="cat-item" onclick="filterByCategory('Sains')">Sains</span>
+                    <span class="cat-item" onclick="filterByCategory('Teknologi')">Teknologi</span>
+                    <span class="cat-item" onclick="filterByCategory('Lingkungan')">Lingkungan</span>
+                    <span class="cat-item" onclick="filterByCategory('Sosial')">Sosial</span>
+                    <span class="cat-item" onclick="filterByCategory('Ekonomi')">Ekonomi</span>
+                    <span class="cat-item" onclick="filterByCategory('Politik')">Politik</span>
+                    <span class="cat-item" onclick="filterByCategory('Pendidikan')">Pendidikan</span>
+                    <span class="cat-item" onclick="filterByCategory('Pertahanan dan Keamanan')">Pertahanan & Keamanan</span>
+                    <span class="cat-item" onclick="filterByCategory('Bisnis')">Bisnis</span>
+                    <span class="cat-item" onclick="filterByCategory('Olahraga')">Olahraga</span>
+                    <span class="cat-item" onclick="filterByCategory('Infografik')">Infografik</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Trending Tags <i class="fas fa-bolt" style="color:var(--accent-color)"></i></h3>
+                <div class="tag-cloud" id="trendingTags"></div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="articles-grid" id="articlesGrid"></div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-col">
+                <div class="logo"><i class="fas fa-newspaper"></i> FerCy<span>News ID</span></div>
+                <p style="margin-top: 1rem; line-height: 1.6; opacity: 0.8;">
+                    Platform berita terdepan yang menyajikan informasi aktual, tajam, dan terpercaya. Berkomitmen untuk mencerdaskan kehidupan bangsa melalui jurnalisme berkualitas.
+                </p>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Informasi & Kebijakan</h4>
+                <div class="footer-links">
+                    <a href="javascript:void(0)" onclick="openPedomanModal()">Pedoman Media Siber</a>
+                    <a href="#">Tentang Kami</a>
+                    <a href="#">Kode Etik Jurnalistik</a>
+                    <a href="#">Kebijakan Privasi</a>
+                    <a href="#">Kontak Redaksi</a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Bagikan Portal Ini</h4>
+                <p style="margin-bottom: 1rem; opacity: 0.8; font-size: 0.9rem;">Dukung kami dengan membagikan portal ini ke media sosial Anda:</p>
+                <div class="footer-social-share">
+                    <a href="https://wa.me/?text=Baca%20berita%20terkini%20dan%20terpercaya%20di%20FerCy%20News%20ID%20https%3A%2F%2Ffercynews.id" target="_blank" class="footer-share-btn" title="Bagikan ke WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffercynews.id" target="_blank" class="footer-share-btn" title="Bagikan ke Facebook">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?text=Berita%20Terkini%20Indonesia&url=https%3A%2F%2Ffercynews.id" target="_blank" class="footer-share-btn" title="Bagikan ke Twitter">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Ffercynews.id" target="_blank" class="footer-share-btn" title="Bagikan ke LinkedIn">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright-bar">
+            &copy; 2025 FerCy News ID. All Rights Reserved.
+        </div>
+    </footer>
+
+    <div id="writeModal" class="modal">
+        <div class="modal-content form-content">
+            <span class="close" onclick="closeWriteModal()">&times;</span>
+            <h2><i class="fas fa-edit"></i> Kontribusi Artikel</h2>
+            <form id="articleForm" onsubmit="submitArticle(event)">
+                <div class="form-group">
+                    <label class="form-label">Judul Artikel</label>
+                    <input type="text" id="postTitle" class="form-input" required placeholder="Judul menarik...">
+                </div>
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="form-label">Nama Penulis</label>
+                        <input type="text" id="postAuthor" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Kategori</label>
+                        <select id="postCategory" class="form-input">
+                            <option>Sains</option>
+                            <option>Teknologi</option>
+                            <option>Lingkungan</option>
+                            <option>Sosial</option>
+                            <option>Ekonomi</option>
+                            <option>Politik</option>
+                            <option>Masyarakat</option>
+                            <option>Pendidikan</option>
+                            <option>Pertahanan dan Keamanan</option>
+                            <option>Bisnis</option>
+                            <option>Olahraga</option>
+                            <option>Infografik</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">URL Gambar Cover</label>
+                    <input type="url" id="postImage" class="form-input" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags (Pisahkan dengan koma)</label>
+                    <input type="text" id="postTags" class="form-input" placeholder="#inovasi, #masaDepan">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Isi Berita</label>
+                    <div id="editor"></div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">Terbitkan</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="readModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReadModal()">&times;</span>
+            <div id="readContentContainer"></div>
+        </div>
+    </div>
+
+    <div id="pedomanModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePedomanModal()">&times;</span>
+            <div class="read-body">
+                <h1 style="text-align:center; margin-bottom: 2rem;">Pedoman Pemberitaan Media Siber</h1>
+                <div class="ql-editor" style="text-align: justify;">
+                    <p>Kemerdekaan berpendapat, kemerdekaan berekspresi, dan kemerdekaan pers adalah hak asasi manusia yang dilindungi Pancasila, Undang-Undang Dasar 1945, dan Deklarasi Universal Hak Asasi Manusia PBB. Keberadaan media siber di Indonesia juga merupakan bagian dari kemerdekaan berpendapat, kemerdekaan berekspresi, dan kemerdekaan pers.</p>
+                    <p>Media siber memiliki karakter khusus sehingga memerlukan pedoman agar pengelolaannya dapat dilaksanakan secara profesional, memenuhi fungsi, hak, dan kewajibannya sesuai Undang-Undang Nomor 40 Tahun 1999 tentang Pers dan Kode Etik Jurnalistik. Untuk itu Dewan Pers bersama organisasi pers, pengelola media siber, dan masyarakat menyusun Pedoman Pemberitaan Media Siber sebagai berikut:</p>
+                    
+                    <h3>1. Ruang Lingkup</h3>
+                    <ol type="a">
+                        <li>Media Siber adalah segala bentuk media yang menggunakan wahana internet dan melaksanakan kegiatan jurnalistik, serta memenuhi persyaratan Undang-Undang Pers dan Standar Perusahaan Pers yang ditetapkan Dewan Pers.</li>
+                        <li>Isi Buatan Pengguna (User Generated Content) adalah segala isi yang dibuat dan atau dipublikasikan oleh pengguna media siber, antara lain, artikel, gambar, komentar, suara, video dan berbagai bentuk unggahan yang melekat pada media siber, seperti blog, forum, komentar pembaca atau pemirsa, dan bentuk lain.</li>
+                    </ol>
+
+                    <h3>2. Verifikasi dan keberimbangan berita</h3>
+                    <ol type="a">
+                        <li>Pada prinsipnya setiap berita harus melalui verifikasi.</li>
+                        <li>Berita yang dapat merugikan pihak lain memerlukan verifikasi pada berita yang sama untuk memenuhi prinsip akurasi dan keberimbangan.</li>
+                        <li>Ketentuan dalam butir (a) di atas dikecualikan, dengan syarat:
+                            <ol type="1">
+                                <li>Berita benar-benar mengandung kepentingan publik yang bersifat mendesak;</li>
+                                <li>Sumber berita yang pertama adalah sumber yang jelas disebutkan identitasnya, kredibel dan kompeten;</li>
+                                <li>Subyek berita yang harus dikonfirmasi tidak diketahui keberadaannya dan atau tidak dapat diwawancarai;</li>
+                                <li>Media memberikan penjelasan kepada pembaca bahwa berita tersebut masih memerlukan verifikasi lebih lanjut yang diupayakan dalam waktu secepatnya. Penjelasan dimuat pada bagian akhir dari berita yang sama, di dalam kurung dan menggunakan huruf miring.</li>
+                            </ol>
+                        </li>
+                        <li>Setelah memuat berita sesuai dengan butir (c), media wajib meneruskan upaya verifikasi, dan setelah verifikasi didapatkan, hasil verifikasi dicantumkan pada berita pemutakhiran (update) dengan tautan pada berita yang belum terverifikasi.</li>
+                    </ol>
+
+                    <h3>3. Isi Buatan Pengguna (User Generated Content)</h3>
+                    <ol type="a">
+                        <li>Media siber wajib mencantumkan syarat dan ketentuan mengenai Isi Buatan Pengguna yang tidak bertentangan dengan Undang-Undang No. 40 tahun 1999 tentang Pers dan Kode Etik Jurnalistik, yang ditempatkan secara terang dan jelas.</li>
+                        <li>Media siber mewajibkan setiap pengguna untuk melakukan registrasi keanggotaan dan melakukan proses log-in terlebih dahulu untuk dapat mempublikasikan semua bentuk Isi Buatan Pengguna. Ketentuan mengenai log-in akan diatur lebih lanjut.</li>
+                        <li>Dalam registrasi tersebut, media siber mewajibkan pengguna memberi persetujuan tertulis bahwa Isi Buatan Pengguna yang dipublikasikan:
+                            <ol type="1">
+                                <li>Tidak memuat isi bohong, fitnah, sadis dan cabul;</li>
+                                <li>Tidak memuat isi yang mengandung prasangka dan kebencian terkait dengan suku, agama, ras, dan antargolongan (SARA), serta menganjurkan tindakan kekerasan;</li>
+                                <li>Tidak memuat isi diskriminatif atas dasar perbedaan jenis kelamin dan bahasa, serta tidak merendahkan martabat orang lemah, miskin, sakit, cacat jiwa, atau cacat jasmani.</li>
+                            </ol>
+                        </li>
+                        <li>Media siber memiliki kewenangan mutlak untuk mengedit atau menghapus Isi Buatan Pengguna yang bertentangan dengan butir (c).</li>
+                        <li>Media siber wajib menyediakan mekanisme pengaduan Isi Buatan Pengguna yang dinilai melanggar ketentuan pada butir (c). Mekanisme tersebut harus disediakan di tempat yang dengan mudah dapat diakses pengguna.</li>
+                        <li>Media siber wajib menyunting, menghapus, dan melakukan tindakan koreksi setiap Isi Buatan Pengguna yang dilaporkan dan melanggar ketentuan butir (c), sesegera mungkin secara proporsional selambat-lambatnya 2 x 24 jam setelah pengaduan diterima.</li>
+                        <li>Media siber yang telah memenuhi ketentuan pada butir (a), (b), (c), dan (f) tidak dibebani tanggung jawab atas masalah yang ditimbulkan akibat pemuatan isi yang melanggar ketentuan pada butir (c).</li>
+                        <li>Media siber bertanggung jawab atas Isi Buatan Pengguna yang dilaporkan bila tidak mengambil tindakan koreksi setelah batas waktu sebagaimana tersebut pada butir (f).</li>
+                    </ol>
+
+                    <h3>4. Ralat, Koreksi, dan Hak Jawab</h3>
+                    <ol type="a">
+                        <li>Ralat, koreksi, dan hak jawab mengacu pada Undang-Undang Pers, Kode Etik Jurnalistik, dan Pedoman Hak Jawab yang ditetapkan Dewan Pers.</li>
+                        <li>Ralat, koreksi dan atau hak jawab wajib ditautkan pada berita yang diralat, dikoreksi atau yang diberi hak jawab.</li>
+                        <li>Di setiap berita ralat, koreksi, dan hak jawab wajib dicantumkan waktu pemuatan ralat, koreksi, dan atau hak jawab tersebut.</li>
+                        <li>Bila suatu berita media siber tertentu disebarluaskan media siber lain, maka:
+                            <ol type="1">
+                                <li>Tanggung jawab media siber pembuat berita terbatas pada berita yang dipublikasikan di media siber tersebut atau media siber yang berada di bawah otoritas teknisnya;</li>
+                                <li>Koreksi berita yang dilakukan oleh sebuah media siber, juga harus dilakukan oleh media siber lain yang mengutip berita dari media siber yang dikoreksi itu;</li>
+                                <li>Media yang menyebarluaskan berita dari sebuah media siber dan tidak melakukan koreksi atas berita sesuai yang dilakukan oleh media siber pemilik dan atau pembuat berita tersebut, bertanggung jawab penuh atas semua akibat hukum dari berita yang tidak dikoreksinya itu.</li>
+                            </ol>
+                        </li>
+                        <li>Sesuai dengan Undang-Undang Pers, media siber yang tidak melayani hak jawab dapat dijatuhi sanksi hukum pidana denda paling banyak Rp500.000.000 (Lima ratus juta rupiah).</li>
+                    </ol>
+
+                    <h3>5. Pencabutan Berita</h3>
+                    <ol type="a">
+                        <li>Berita yang sudah dipublikasikan tidak dapat dicabut karena alasan penyensoran dari pihak luar redaksi, kecuali terkait masalah SARA, kesusilaan, masa depan anak, pengalaman traumatik korban atau berdasarkan pertimbangan khusus lain yang ditetapkan Dewan Pers.</li>
+                        <li>Media siber lain wajib mengikuti pencabutan kutipan berita dari media asal yang telah dicabut.</li>
+                        <li>Pencabutan berita wajib disertai dengan alasan pencabutan dan diumumkan kepada publik.</li>
+                    </ol>
+
+                    <h3>6. Iklan</h3>
+                    <ol type="a">
+                        <li>Media siber wajib membedakan dengan tegas antara produk berita dan iklan.</li>
+                        <li>Setiap berita/artikel/isi yang merupakan iklan dan atau isi berbayar wajib mencantumkan keterangan 'advertorial', 'iklan', 'ads', 'sponsored', atau kata lain yang menjelaskan bahwa berita/artikel/isi tersebut adalah iklan.</li>
+                    </ol>
+
+                    <h3>7. Hak Cipta</h3>
+                    <ol type="a">
+                        <li>Media siber wajib menghormati hak cipta sebagaimana diatur dalam peraturan perundang-undangan yang berlaku.</li>
+                    </ol>
+
+                    <h3>8. Pencantuman Pedoman</h3>
+                    <ol type="a">
+                        <li>Media siber wajib mencantumkan Pedoman Pemberitaan Media Siber ini di medianya secara terang dan jelas.</li>
+                    </ol>
+
+                    <h3>9. Sengketa</h3>
+                    <ol type="a">
+                        <li>Penilaian akhir atas sengketa mengenai pelaksanaan Pedoman Pemberitaan Media Siber ini diselesaikan oleh Dewan Pers.</li>
+                    </ol>
+                    
+                    <p style="margin-top: 2rem; font-style: italic; color: #666;">Jakarta, 3 Februari 2012<br>(Pedoman ini ditandatangani oleh Dewan Pers dan komunitas pers di Jakarta, 3 Februari 2012).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content modal-small">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2><i class="fas fa-lock"></i> Login Admin</h2>
+            <p>Masukkan password untuk mengakses fitur moderasi.</p>
+            <div class="form-group" style="margin-top: 1rem;">
+                <input type="password" id="adminPassword" class="form-input" placeholder="Password...">
+            </div>
+            <button class="btn btn-primary" onclick="verifyAdmin()" style="width:100%">Masuk</button>
+        </div>
+    </div>
+
+    <div id="adminDashboardModal" class="modal">
+        <div class="modal-content admin-dashboard">
+            <span class="close" onclick="closeAdminDashboard()">&times;</span>
+            <h2><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+            <p style="margin-bottom: 2rem;">Kelola artikel, lihat statistik, dan hapus konten.</p>
+
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Total Artikel</h3>
+                    <div class="stat-number" id="totalArticlesCount">0</div>
+                    <p>Telah Dipublikasikan</p>
+                </div>
+                <div class="pie-chart-container" id="chartContainer">
+                    <div class="pie-chart" id="categoryPieChart"></div>
+                    <div class="legend" id="categoryLegend"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Manajemen Artikel</h3>
+                <button class="btn btn-danger" onclick="bulkDeleteArticles()">
+                    <i class="fas fa-trash"></i> Hapus Terpilih
+                </button>
+            </div>
+
+            <div class="admin-table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th width="5%"><input type="checkbox" onchange="toggleSelectAll(this)"></th>
+                            <th width="40%">Judul Artikel</th>
+                            <th width="15%">Penulis</th>
+                            <th width="15%">Kategori</th>
+                            <th width="15%">Tanggal</th>
+                            <th width="10%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+          new google.translate.TranslateElement({
+              pageLanguage: 'id', 
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+              autoDisplay: false
+          }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+        // --- DATA & SETUP ---
+        let articles = JSON.parse(localStorage.getItem('fercyArticles')) || [
+            { id: 1, title: "Revolusi Hijau: Kota Masa Depan", author: "Sarah Wijaya", date: "2025-10-12", category: "Lingkungan", image: "https://images.unsplash.com/photo-1518005052357-e9847508d571?auto=format&fit=crop&w=800&q=80", tags: ["#EcoCity"], content: "<h3>Kota Ramah Lingkungan</h3><p>Kota masa depan...</p>" },
+            { id: 2, title: "AI Generatif dan Etika Digital", author: "Budi Santoso", date: "2025-11-05", category: "Teknologi", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80", tags: ["#AI"], content: "<h3>Kecerdasan Buatan</h3><p>AI semakin canggih...</p>" },
+            { id: 3, title: "Transformasi Pendidikan 2025", author: "Prof. Handoko", date: "2025-12-01", category: "Pendidikan", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", tags: ["#Edukasi"], content: "<h3>Sekolah Digital</h3><p>Belajar dari rumah...</p>" }
+        ];
+
+        // --- ADMIN & DASHBOARD LOGIC (UPDATED) ---
+        let isAdmin = false;
+
+        function handleAdminClick() {
+            if (isAdmin) {
+                openAdminDashboard();
+            } else {
+                openLoginModal();
+            }
+        }
+
+        function verifyAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            if (pass === '1234') {
+                isAdmin = true;
+                document.getElementById('adminText').innerText = "Dashboard Admin";
+                document.getElementById('adminBtn').classList.remove('btn-outline');
+                document.getElementById('adminBtn').classList.add('btn-primary');
+                
+                closeLoginModal();
+                openAdminDashboard(); 
+                alert("Login Berhasil! Selamat datang Admin.");
+            } else {
+                alert("Password Salah!");
+            }
+        }
+
+        function openAdminDashboard() {
+            document.getElementById('adminDashboardModal').style.display = 'block';
+            renderAdminDashboard();
+        }
+
+        function closeAdminDashboard() {
+            document.getElementById('adminDashboardModal').style.display = 'none';
+        }
+
+        // RENDER DASHBOARD CONTENT
+        function renderAdminDashboard() {
+            document.getElementById('totalArticlesCount').innerText = articles.length;
+
+            const catCount = {};
+            articles.forEach(a => { catCount[a.category] = (catCount[a.category] || 0) + 1; });
+            
+            const colors = ['#2563eb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
+            let gradientStr = [];
+            let currentDeg = 0;
+            let legendHtml = '';
+            let colorIndex = 0;
+
+            for (const [cat, count] of Object.entries(catCount)) {
+                const percentage = (count / articles.length) * 360;
+                const color = colors[colorIndex % colors.length];
+                
+                gradientStr.push(`${color} ${currentDeg}deg ${currentDeg + percentage}deg`);
+                currentDeg += percentage;
+                
+                legendHtml += `
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:${color}"></div>
+                        <span>${cat} (${count})</span>
+                    </div>
+                `;
+                colorIndex++;
+            }
+
+            document.getElementById('categoryPieChart').style.background = `conic-gradient(${gradientStr.join(', ')})`;
+            document.getElementById('categoryLegend').innerHTML = legendHtml;
+
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+            articles.forEach(art => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="bulk-check" value="${art.id}"></td>
+                        <td>${art.title}</td>
+                        <td>${art.author}</td>
+                        <td><span class="tag">${art.category}</span></td>
+                        <td>${art.date}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="deleteOneArticle(${art.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteOneArticle(id) {
+            if(confirm("Hapus artikel ini permanen?")) {
+                articles = articles.filter(a => a.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        function toggleSelectAll(source) {
+            checkboxes = document.querySelectorAll('.bulk-check');
+            for(var i=0, n=checkboxes.length;i<n;i++) {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+
+        function bulkDeleteArticles() {
+            const checkboxes = document.querySelectorAll('.bulk-check:checked');
+            if(checkboxes.length === 0) { alert("Pilih minimal satu artikel!"); return; }
+
+            if(confirm(`Yakin ingin menghapus ${checkboxes.length} artikel terpilih?`)) {
+                const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.value));
+                articles = articles.filter(a => !idsToDelete.includes(a.id));
+                saveAndRefresh();
+            }
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('fercyArticles', JSON.stringify(articles));
+            renderAdminDashboard(); 
+            renderArticles(); 
+        }
+
+        // --- MAIN PAGE LOGIC ---
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        });
+
+        function renderArticles(data = articles) {
+            const grid = document.getElementById('articlesGrid');
+            grid.innerHTML = '';
+            data.forEach(art => {
+                const shareText = encodeURIComponent(`Baca: "${art.title}"`);
+                const dummyUrl = encodeURIComponent("https://fercynews.com"); 
+                const wa = `https://wa.me/?text=${shareText} ${dummyUrl}`;
+                const fb = `https://www.facebook.com/sharer/sharer.php?u=${dummyUrl}`;
+                const tw = `https://twitter.com/intent/tweet?text=${shareText}&url=${dummyUrl}`;
+
+                const card = document.createElement('div');
+                card.className = 'article-card-container';
+                card.innerHTML = `
+                    <div class="article-card">
+                        <div class="card-front">
+                            <img src="${art.image}" class="card-img" alt="Cover">
+                            <div class="card-content">
+                                <div class="card-cat">${art.category}</div>
+                                <h3 class="card-title">${art.title}</h3>
+                                <div class="card-meta">
+                                    <span>${art.author}</span>
+                                    <span>${art.date}</span>
+                                </div>
+                                <div style="margin-top:10px; font-size:0.8rem; color:#888;">${art.tags.join(' ')}</div>
+                            </div>
+                        </div>
+                        <div class="card-back">
+                            <h3>${art.title}</h3>
+                            <div class="share-buttons">
+                                <a href="${fb}" target="_blank" class="share-btn fb"><i class="fab fa-facebook-f"></i></a>
+                                <a href="${tw}" target="_blank" class="share-btn tw"><i class="fab fa-twitter"></i></a>
+                                <a href="${wa}" target="_blank" class="share-btn wa"><i class="fab fa-whatsapp"></i></a>
+                            </div>
+                            <button class="btn btn-primary" onclick="openReadArticle(${art.id})">Baca Selengkapnya</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            updateTicker();
+            updateTrendingTags();
+        }
+
+        function updateTicker() {
+            const t = document.getElementById('tickerContent');
+            t.innerHTML = articles.slice(0,5).map(a => `<div class="ticker-item" onclick="openReadArticle(${a.id})">BREAKING: ${a.title}</div>`).join('');
+        }
+        function updateTrendingTags() {
+            let tags = [...new Set(articles.flatMap(a => a.tags))];
+            document.getElementById('trendingTags').innerHTML = tags.map(t => `<span class="tag" onclick="searchByTag('${t}')">${t}</span>`).join('');
+        }
+        function openReadArticle(id) {
+            const art = articles.find(a => a.id === id);
+            if(!art) return;
+            document.getElementById('readContentContainer').innerHTML = `
+                <div class="read-header"><img src="${art.image}" class="read-cover"></div>
+                <div class="read-body">
+                    <span style="color:var(--accent-color); font-weight:bold;">${art.category}</span>
+                    <h1>${art.title}</h1>
+                    <div class="read-meta">Oleh ${art.author} | ${art.date}</div>
+                    <div class="read-content ql-editor">${art.content}</div>
+                </div>`;
+            document.getElementById('readModal').style.display = 'block';
+        }
+
+        function submitArticle(e) {
+            e.preventDefault();
+            const newArt = {
+                id: Date.now(),
+                title: document.getElementById('postTitle').value,
+                author: document.getElementById('postAuthor').value,
+                category: document.getElementById('postCategory').value,
+                image: document.getElementById('postImage').value,
+                tags: document.getElementById('postTags').value.split(',').map(t=>t.trim().startsWith('#')?t.trim():'#'+t.trim()),
+                content: quill.root.innerHTML,
+                date: new Date().toISOString().split('T')[0]
+            };
+            articles.unshift(newArt);
+            localStorage.setItem('fercyArticles', JSON.stringify(articles));
+            closeWriteModal();
+            renderArticles();
+            if(isAdmin) renderAdminDashboard();
+            alert("Artikel Terbit!");
+        }
+
+        function filterArticles() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderArticles(articles.filter(a => a.title.toLowerCase().includes(q) || a.tags.some(t=>t.toLowerCase().includes(q))));
+        }
+        function filterByCategory(c) { renderArticles(c==='Semua'?articles:articles.filter(a=>a.category===c)); }
+        function searchByTag(t) { document.getElementById('searchInput').value=t; filterArticles(); }
+
+        function openWriteModal() { document.getElementById('writeModal').style.display = 'block'; }
+        function closeWriteModal() { document.getElementById('writeModal').style.display = 'none'; }
+        function openLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
+        function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function closeReadModal() { document.getElementById('readModal').style.display = 'none'; }
+
+        // Fungsi Modal Pedoman Media Siber
+        function openPedomanModal() { document.getElementById('pedomanModal').style.display = 'block'; }
+        function closePedomanModal() { document.getElementById('pedomanModal').style.display = 'none'; }
+        
+        window.onclick = e => {
+            if(e.target.className === 'modal') e.target.style.display = 'none';
+        };
+
+        renderArticles();
+    </script>
+</body>
+</html>
