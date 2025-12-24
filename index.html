@@ -13,7 +13,7 @@
     
     <title>FerCy News ID Portal</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
@@ -176,18 +176,121 @@
         }
         .tag:hover { background: var(--secondary); color: white; }
 
-        /* --- AQI WIDGET --- */
+        /* --- AQI WIDGET REDESIGN (Professional UI) --- */
         .aqi-widget {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border: 1px solid #10b981;
-            color: #064e3b;
-            text-align: center;
-            border-radius: var(--radius);
-            padding: 1.5rem; margin-bottom: 2rem;
+            position: relative;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 2rem;
+            color: white;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        body.dark-mode .aqi-widget { background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color: #ecfdf5; border-color: #059669; }
-        .aqi-score { font-size: 2.5rem; font-weight: 800; margin: 10px 0; }
-        .aqi-status { display: inline-block; padding: 4px 12px; border-radius: 20px; background: rgba(0,0,0,0.1); font-weight: 700; font-size: 0.85rem; }
+
+        .aqi-header-bg {
+            padding: 1.5rem 1.5rem 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .aqi-location {
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .aqi-refresh {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .aqi-refresh:hover { opacity: 1; transform: rotate(180deg); }
+
+        .aqi-main-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0;
+            position: relative;
+        }
+
+        .aqi-circle-wrap {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            border: 8px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(5px);
+            margin-bottom: 10px;
+        }
+        
+        .aqi-score-big {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+            z-index: 2;
+        }
+        
+        .aqi-label-small {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-top: -5px;
+        }
+
+        .aqi-status-badge {
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255,255,255,0.2);
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .aqi-details-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .aqi-detail-item {
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .aqi-detail-item:last-child { border-right: none; }
+
+        .aqi-detail-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+        .aqi-detail-val {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Status Colors Classes */
+        .aqi-good { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
+        .aqi-moderate { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
+        .aqi-unhealthy { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
 
         /* --- ARTICLE GRID & SKELETON --- */
         .articles-grid {
@@ -357,16 +460,42 @@
 
     <div class="container">
         <aside>
-            <div class="aqi-widget">
-                <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
-                    <i class="fas fa-wind"></i> <strong>Kualitas Udara</strong>
+            <div class="aqi-widget" id="aqiCard">
+                <div class="aqi-header-bg">
+                    <div class="aqi-location">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        <span id="aqiCity" style="font-size: 1.1rem; font-weight: 700;">Jakarta, ID</span>
+                    </div>
+                    <div class="aqi-refresh" onclick="fetchAirQuality()" title="Refresh Data">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
                 </div>
-                <h3 id="aqiCity" style="margin:5px 0 0; font-size:1.1rem;">Jakarta</h3>
-                <div class="aqi-score" id="aqiScore">--</div>
-                <div class="aqi-status" id="aqiStatus">Memuat...</div>
-                <div style="font-size:0.75rem; margin-top:10px; opacity:0.8;">Real-time Index</div>
-            </div>
 
+                <div class="aqi-main-display">
+                    <div class="aqi-circle-wrap">
+                        <div style="text-align: center;">
+                            <div class="aqi-score-big" id="aqiScore">--</div>
+                            <div class="aqi-label-small">US AQI</div>
+                        </div>
+                    </div>
+                    <div class="aqi-status-badge" id="aqiStatus">Memuat...</div>
+                </div>
+
+                <div class="aqi-details-grid">
+                    <div class="aqi-detail-item">
+                        <div class="aqi-detail-label">PM2.5</div>
+                        <div class="aqi-detail-val"><span id="pm25Val">--</span></div>
+                    </div>
+                    <div class="aqi-detail-item">
+                        <div class="aqi-detail-label">Angin</div>
+                        <div class="aqi-detail-val"><span id="windSpeed">--</span> <small>km/h</small></div>
+                    </div>
+                    <div class="aqi-detail-item">
+                        <div class="aqi-detail-label">Suhu</div>
+                        <div class="aqi-detail-val"><span id="tempVal">--</span>°C</div>
+                    </div>
+                </div>
+            </div>
             <input type="text" id="searchInput" class="search-box" placeholder="Cari topik..." onkeyup="handleSearch()">
             
             <div class="sidebar-section">
@@ -666,18 +795,39 @@
             if(isAdmin) renderAdminDashboard();
         });
 
-        // AQI WIDGET LOGIC
+        // --- UPGRADED AQI WIDGET LOGIC ---
         function fetchAirQuality() {
-            const mockAQI = Math.floor(Math.random() * (120 - 40 + 1) + 40); 
+            // Mock Data Generation
+            const mockAQI = Math.floor(Math.random() * (160 - 30 + 1) + 30); 
+            const mockPM25 = (mockAQI * 0.45).toFixed(1);
+            const mockWind = Math.floor(Math.random() * 20 + 5);
+            const mockTemp = Math.floor(Math.random() * 5 + 28);
+
+            // Elements
             const scoreEl = document.getElementById('aqiScore');
             const statusEl = document.getElementById('aqiStatus');
+            const cardEl = document.getElementById('aqiCard');
+            
+            // Additional Details
+            document.getElementById('pm25Val').innerText = mockPM25;
+            document.getElementById('windSpeed').innerText = mockWind;
+            document.getElementById('tempVal').innerText = mockTemp;
+
+            // Animate Number
             scoreEl.innerText = mockAQI;
+
+            // Remove previous color classes
+            cardEl.classList.remove('aqi-good', 'aqi-moderate', 'aqi-unhealthy');
+
             if(mockAQI <= 50) {
-                statusEl.innerText = "Baik"; statusEl.style.background = "#dcfce7"; statusEl.style.color = "#166534";
+                statusEl.innerText = "Baik";
+                cardEl.classList.add('aqi-good');
             } else if (mockAQI <= 100) {
-                statusEl.innerText = "Sedang"; statusEl.style.background = "#fef9c3"; statusEl.style.color = "#854d0e";
+                statusEl.innerText = "Sedang";
+                cardEl.classList.add('aqi-moderate');
             } else {
-                statusEl.innerText = "Tidak Sehat"; statusEl.style.background = "#fee2e2"; statusEl.style.color = "#991b1b";
+                statusEl.innerText = "Tidak Sehat";
+                cardEl.classList.add('aqi-unhealthy');
             }
         }
         fetchAirQuality();
