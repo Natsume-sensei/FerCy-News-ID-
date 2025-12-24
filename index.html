@@ -61,6 +61,27 @@
         body.dark-mode .ql-snow .ql-fill { fill: var(--text-main) !important; }
         body.dark-mode .ql-snow .ql-picker { color: var(--text-main) !important; }
 
+        /* --- FIX: ADMIN DASHBOARD DARK MODE --- */
+        body.dark-mode .stat-card {
+            background-color: var(--bg-card);
+            border-color: var(--border);
+            color: var(--text-main);
+        }
+        body.dark-mode .admin-table th {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            border-bottom-color: var(--border);
+        }
+        body.dark-mode .admin-table td {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border-bottom-color: var(--border);
+        }
+        body.dark-mode .modal-content {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+        }
+
         /* --- RESET & BASIC --- */
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         body {
@@ -292,6 +313,17 @@
         .aqi-moderate { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
         .aqi-unhealthy { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
 
+        /* --- NEW FEATURE: WORLD WIDGET --- */
+        .world-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid var(--border);
+        }
+        .world-item:last-child { border-bottom: none; }
+        .world-city { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        .world-time { font-family: 'Inter', monospace; font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .world-weather { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; background: rgba(37, 99, 235, 0.1); padding: 2px 10px; border-radius: 12px; color: var(--secondary); font-weight: 600; }
+        body.dark-mode .world-weather { background: rgba(37, 99, 235, 0.2); color: #93c5fd; }
+
         /* --- ARTICLE GRID & SKELETON --- */
         .articles-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;
@@ -496,6 +528,11 @@
                     </div>
                 </div>
             </div>
+            <div class="sidebar-section" id="worldWidget">
+                <h3><i class="fas fa-globe-asia" style="color:var(--secondary); margin-right:5px;"></i> Dunia Terkini</h3>
+                <div class="world-grid" id="worldData">
+                    </div>
+            </div>
             <input type="text" id="searchInput" class="search-box" placeholder="Cari topik..." onkeyup="handleSearch()">
             
             <div class="sidebar-section">
@@ -514,9 +551,12 @@
                     <div class="cat-item" onclick="filterByCategory('Lingkungan', this)"><span>Lingkungan</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Sosial', this)"><span>Sosial</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Ekonomi', this)"><span>Ekonomi</span> <i class="fas fa-chevron-right"></i></div>
+                    <div class="cat-item" onclick="filterByCategory('Hukum', this)"><span>Hukum</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Politik', this)"><span>Politik</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Pendidikan', this)"><span>Pendidikan</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Bisnis', this)"><span>Bisnis</span> <i class="fas fa-chevron-right"></i></div>
+                    <div class="cat-item" onclick="filterByCategory('STEAM/STEM', this)"><span>STEAM/STEM</span> <i class="fas fa-chevron-right"></i></div>
+                    <div class="cat-item" onclick="filterByCategory('Seni dan Animasi', this)"><span>Seni dan Animasi</span> <i class="fas fa-chevron-right"></i></div>
                     <div class="cat-item" onclick="filterByCategory('Infografik', this)"><span>Infografik</span> <i class="fas fa-chevron-right"></i></div>
                 </div>
             </div>
@@ -593,11 +633,14 @@
                                 <option>Lingkungan</option>
                                 <option>Sosial</option>
                                 <option>Ekonomi</option>
+                                <option>Hukum</option>
                                 <option>Politik</option>
                                 <option>Masyarakat</option>
                                 <option>Pendidikan</option>
                                 <option>Pertahanan dan Keamanan</option>
                                 <option>Bisnis</option>
+                                <option>STEAM/STEM</option>
+                                <option>Seni dan Animasi</option>
                                 <option>Olahraga</option>
                                 <option>Infografik</option>
                             </select>
@@ -748,10 +791,21 @@
 
         let articles = []; 
 
+        // --- RESTORED: 13 ARTICLES DEFAULT DATA ---
         const defaultArticles = [
             { id: 1, title: "Revolusi Hijau: Kota Masa Depan", author: "Sarah Wijaya", date: "2025-10-12", category: "Lingkungan", image: "https://images.unsplash.com/photo-1518005052357-e9847508d571?auto=format&fit=crop&w=800&q=80", tags: ["#EcoCity"], status: 'published', views: 120, isBreaking: false, content: "<h3>Kota Ramah Lingkungan</h3><p>Kota masa depan...</p>" },
             { id: 2, title: "AI Generatif dan Etika Digital", author: "Budi Santoso", date: "2025-11-05", category: "Teknologi", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80", tags: ["#AI"], status: 'published', views: 345, isBreaking: true, content: "<h3>Kecerdasan Buatan</h3><p>AI semakin canggih...</p>" },
-            { id: 3, title: "Transformasi Pendidikan 2025", author: "Prof. Handoko", date: "2025-12-01", category: "Pendidikan", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", tags: ["#Edukasi"], status: 'published', views: 89, isBreaking: false, content: "<h3>Sekolah Digital</h3><p>Belajar dari rumah...</p>" }
+            { id: 3, title: "Transformasi Pendidikan 2025", author: "Prof. Handoko", date: "2025-12-01", category: "Pendidikan", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80", tags: ["#Edukasi"], status: 'published', views: 89, isBreaking: false, content: "<h3>Sekolah Digital</h3><p>Belajar dari rumah...</p>" },
+            { id: 4, title: "Dampak Perubahan Iklim di Pesisir", author: "Feryl Ilyasa", date: "2025-12-10", category: "Lingkungan", image: "https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=800&q=80", tags: ["#ClimateChange", "#Ocean"], status: 'published', views: 210, isBreaking: false, content: "<h3>Kenaikan Air Laut</h3><p>Wilayah pesisir semakin terancam...</p>" },
+            { id: 5, title: "Perkembangan Jaringan 5G", author: "Rina S.", date: "2025-12-12", category: "Teknologi", image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80", tags: ["#5G", "#Internet"], status: 'published', views: 156, isBreaking: false, content: "<h3>Konektivitas Cepat</h3><p>Jaringan 5G mulai merata...</p>" },
+            { id: 6, title: "Ekonomi Digital Tahun 2025", author: "Dr. Finance", date: "2025-12-14", category: "Ekonomi", image: "https://images.unsplash.com/photo-1611974765270-ca12586343bb?auto=format&fit=crop&w=800&q=80", tags: ["#Fintech"], status: 'published', views: 180, isBreaking: false, content: "<h3>Transaksi Cashless</h3><p>Masyarakat beralih ke dompet digital...</p>" },
+            { id: 7, title: "Energi Surya untuk Rumah Tangga", author: "Green Tech", date: "2025-12-15", category: "Sains", image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80", tags: ["#SolarPanel"], status: 'published', views: 230, isBreaking: false, content: "<h3>Panel Surya</h3><p>Efisiensi energi semakin tinggi...</p>" },
+            { id: 8, title: "Kesehatan Mental Gen Z", author: "Psikolog Anna", date: "2025-12-16", category: "Sosial", image: "https://images.unsplash.com/photo-1493836512294-502baa1986e2?auto=format&fit=crop&w=800&q=80", tags: ["#MentalHealth"], status: 'published', views: 400, isBreaking: false, content: "<h3>Awareness</h3><p>Pentingnya menjaga kesehatan mental...</p>" },
+            { id: 9, title: "Mobil Listrik Terjangkau", author: "OtoReview", date: "2025-12-17", category: "Bisnis", image: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=800&q=80", tags: ["#EV"], status: 'published', views: 320, isBreaking: false, content: "<h3>Industri Otomotif</h3><p>Harga mobil listrik kian bersaing...</p>" },
+            { id: 10, title: "Metaverse dan Dunia Kerja", author: "Tech Lead", date: "2025-12-18", category: "Teknologi", image: "https://images.unsplash.com/photo-1614850523060-8da1d56ae167?auto=format&fit=crop&w=800&q=80", tags: ["#Metaverse"], status: 'published', views: 290, isBreaking: false, content: "<h3>Virtual Office</h3><p>Bekerja dari dunia virtual...</p>" },
+            { id: 11, title: "Hukum Siber di Era Digital", author: "Law Firm", date: "2025-12-19", category: "Hukum", image: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=800&q=80", tags: ["#CyberLaw"], status: 'published', views: 110, isBreaking: false, content: "<h3>Perlindungan Data</h3><p>Regulasi baru tentang privasi...</p>" },
+            { id: 12, title: "Pentingnya STEAM Sejak Dini", author: "EduTech", date: "2025-12-20", category: "STEAM/STEM", image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80", tags: ["#STEM"], status: 'published', views: 140, isBreaking: false, content: "<h3>Kurikulum Merdeka</h3><p>Integrasi Sains dan Seni...</p>" },
+            { id: 13, title: "Kebangkitan Animasi Lokal", author: "AniFest", date: "2025-12-21", category: "Seni dan Animasi", image: "https://images.unsplash.com/photo-1626544827763-d516dce335ca?auto=format&fit=crop&w=800&q=80", tags: ["#Animation"], status: 'published', views: 250, isBreaking: false, content: "<h3>Karya Anak Bangsa</h3><p>Animasi Indonesia mendunia...</p>" }
         ];
 
         // SKELETON LOADING
@@ -780,7 +834,8 @@
         articlesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                articles = Object.values(data);
+                // FIX UNDEFINED BUG: Filter only valid objects with a title
+                articles = Object.values(data).filter(a => a && a.title);
             } else {
                 defaultArticles.forEach(art => { articlesRef.child(art.id).set(art); });
                 articles = defaultArticles;
@@ -832,6 +887,49 @@
         }
         fetchAirQuality();
 
+        // --- NEW FEATURE: WORLD CLOCK & WEATHER LOGIC ---
+        const majorCities = [
+            { name: "New York", tz: "America/New_York", icon: "fa-cloud", temp: 12 },
+            { name: "London", tz: "Europe/London", icon: "fa-cloud-rain", temp: 8 },
+            { name: "Tokyo", tz: "Asia/Tokyo", icon: "fa-sun", temp: 22 },
+            { name: "Jakarta", tz: "Asia/Jakarta", icon: "fa-cloud-sun", temp: 31 },
+            { name: "Sydney", tz: "Australia/Sydney", icon: "fa-wind", temp: 19 }
+        ];
+
+        function renderWorldWidget() {
+            const container = document.getElementById('worldData');
+            let html = '';
+            majorCities.forEach(city => {
+                // Initial time render
+                const now = new Date().toLocaleTimeString("en-US", {timeZone: city.tz, hour12: false, hour: '2-digit', minute:'2-digit'});
+                html += `
+                <div class="world-item">
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <div class="world-city">
+                            <i class="fas fa-city" style="font-size:0.7rem; color:var(--text-muted);"></i> ${city.name}
+                        </div>
+                        <div class="world-time" id="time-${city.name.replace(/\s/g,'')}">${now}</div>
+                    </div>
+                    <div class="world-weather">
+                        <i class="fas ${city.icon}"></i> ${city.temp}°C
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateWorldClocks() {
+             majorCities.forEach(city => {
+                const el = document.getElementById(`time-${city.name.replace(/\s/g,'')}`);
+                if(el) {
+                    el.innerText = new Date().toLocaleTimeString("en-US", {timeZone: city.tz, hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                }
+             });
+        }
+        
+        renderWorldWidget();
+        setInterval(updateWorldClocks, 1000); // Live Update
+
         const ITEMS_PER_PAGE = 9; 
         let currentPage = 1;
         let currentFilteredArticles = []; 
@@ -873,11 +971,15 @@
             document.getElementById('categoryLegend').innerHTML = legendHtml;
 
             const tbody = document.getElementById('adminTableBody'); tbody.innerHTML = '';
-            const sortedArticles = [...articles].sort((a, b) => (a.status === 'pending' ? -1 : 1));
+            // FIX: Filter undefined articles before sorting
+            const sortedArticles = [...articles].filter(a => a && a.id).sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
             sortedArticles.forEach(art => {
+                // Safety check
+                if(!art.title) return;
+
                 const statusBadge = art.status === 'published' ? `<span class="badge badge-published">Published</span>` : `<span class="badge badge-pending">Pending</span>`;
-                const quickPublishBtn = art.status === 'pending' ? `<button class="btn btn-success" style="padding:0.4rem;" title="Publikasi Cepat" onclick="quickPublish(${art.id})"><i class="fas fa-check"></i></button>` : '';
+                const quickPublishBtn = art.status === 'pending' ? `<button class="btn btn-success" style="padding:0.4rem;" title="Publikasi Cepat" onclick="quickPublish('${art.id}')"><i class="fas fa-check"></i></button>` : '';
 
                 tbody.innerHTML += `
                     <tr>
@@ -885,8 +987,8 @@
                         <td><strong>${art.title}</strong></td> <td>${art.author}</td> <td><span class="badge" style="background:#eee; color:#333">${art.category}</span></td> <td>${statusBadge}</td> <td>${art.date}</td>
                         <td style="display:flex; gap:5px;">
                             ${quickPublishBtn}
-                            <button class="btn btn-primary" style="padding:0.4rem;" title="Edit" onclick="openEditArticle(${art.id})"><i class="fas fa-pen"></i></button>
-                            <button class="btn btn-danger" style="padding:0.4rem;" title="Hapus" onclick="deleteOneArticle(${art.id})"><i class="fas fa-trash"></i></button>
+                            <button class="btn btn-primary" style="padding:0.4rem;" title="Edit" onclick="openEditArticle('${art.id}')"><i class="fas fa-pen"></i></button>
+                            <button class="btn btn-danger" style="padding:0.4rem;" title="Hapus" onclick="deleteOneArticle('${art.id}')"><i class="fas fa-trash"></i></button>
                         </td>
                     </tr>`;
             });
@@ -903,7 +1005,8 @@
         }
 
         function openEditArticle(id) {
-            const art = articles.find(a => a.id === id);
+            // FIX: Parse Int if ID looks like a number but passed as string, though '==' works for both
+            const art = articles.find(a => a.id == id);
             if(!art) return;
 
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Artikel (Admin)';
@@ -969,17 +1072,23 @@
             }
         }
 
+        // FIX: DELETE FUNCTION now handles string/number IDs correctly
         function deleteOneArticle(id) {
             if(confirm("Hapus artikel ini permanen?")) { 
-                articlesRef.child(id).remove();
+                articlesRef.child(id).remove()
+                .then(() => console.log("Deleted " + id))
+                .catch(e => alert("Error: " + e));
             }
         }
 
+        // FIX: BULK DELETE now ensures it grabs the right ID value
         function bulkDeleteArticles() {
             const checkboxes = document.querySelectorAll('.bulk-check:checked');
             if(checkboxes.length === 0) return alert("Pilih minimal satu artikel!");
             if(confirm(`Hapus ${checkboxes.length} artikel terpilih?`)) {
-                checkboxes.forEach(cb => { articlesRef.child(cb.value).remove(); });
+                checkboxes.forEach(cb => { 
+                    articlesRef.child(cb.value).remove(); 
+                });
             }
         }
 
@@ -1164,7 +1273,7 @@
         }
 
         function openReadArticle(id) {
-            const art = articles.find(a => a.id === id); if(!art) return;
+            const art = articles.find(a => a.id == id); if(!art) return;
             
             // NEW FEATURE 2: INCREMENT VIEWS IN FIREBASE (Transaction)
             articlesRef.child(id).transaction((currentViews) => {
