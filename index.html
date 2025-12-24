@@ -39,14 +39,12 @@
             --border: #334155;
         }
 
-        /* --- FIX: EDITOR DARK MODE (PERBAIKAN UTAMA) --- */
-        /* Memastikan editor berubah menjadi gelap dan teks terlihat */
+        /* --- FIX: EDITOR DARK MODE --- */
         body.dark-mode #editor {
-            background-color: var(--bg-card) !important; /* Menimpa inline style white */
+            background-color: var(--bg-card) !important;
             color: var(--text-main) !important;
             border-color: var(--border) !important;
         }
-        /* Memperbaiki warna toolbar editor agar terlihat di dark mode */
         body.dark-mode .ql-toolbar {
             background-color: var(--bg-body) !important;
             border-color: var(--border) !important;
@@ -309,6 +307,18 @@
         .read-body h1 { font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.2; color: var(--text-main); }
         .read-meta { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; border-left: 4px solid var(--secondary); padding-left: 1rem; }
         
+        /* --- UPDATE: FIX IMAGE DI DALAM ARTIKEL --- */
+        /* Menambahkan CSS agar gambar dalam artikel menjadi responsif dan rapi */
+        .read-content img {
+            max-width: 100%; /* Agar tidak melebihi lebar kontainer */
+            height: auto; /* Agar aspek rasio tetap terjaga */
+            display: block; /* Agar bisa di-margin auto */
+            margin: 1.5rem auto; /* Posisi tengah dan beri jarak atas-bawah */
+            border-radius: 8px; /* Sedikit lengkungan di sudut */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        /* ------------------------------------------- */
+
         /* FORM INPUTS */
         .form-group { margin-bottom: 1.5rem; }
         .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-main); }
