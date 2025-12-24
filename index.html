@@ -1101,8 +1101,10 @@
         var quill = new Quill('#editor', { theme: 'snow', modules: { toolbar: [ [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'align': [] }], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image', 'video'], ['clean'] ] } });
 
         function refreshAllData() {
+            // FIX: GUNAKAN NILAI PENCARIAN SAAT INI AGAR HASIL PENCARIAN TIDAK HILANG SAAT DATA DIUPDATE
+            const currentSearch = document.getElementById('searchInput').value || '';
             // Keep current filter active upon refresh
-            filterArticlesByQueryAndCategory('', currentCategoryFilter, false); 
+            filterArticlesByQueryAndCategory(currentSearch, currentCategoryFilter, false); 
         }
 
         // --- NEW FEATURE 1: BOOKMARK LOGIC ---
@@ -1152,6 +1154,12 @@
                                    a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()));
                 return isPublished && matchCat && matchQuery;
             });
+
+            // FIX: SAFETY CHECK IF PAGE IS OUT OF BOUNDS AFTER REFRESH
+            const totalPages = Math.ceil(currentFilteredArticles.length / ITEMS_PER_PAGE);
+            if (!resetPage && currentPage > totalPages && totalPages > 0) {
+                currentPage = 1;
+            }
 
             renderPaginatedGrid();
             updateTrendingTags();
@@ -1275,8 +1283,10 @@
         function openReadArticle(id) {
             const art = articles.find(a => a.id == id); if(!art) return;
             
-            // NEW FEATURE 2: INCREMENT VIEWS IN FIREBASE (Transaction)
-            articlesRef.child(id).transaction((currentViews) => {
+            // --- FIX CRITICAL BUG ---
+            // SEBELUMNYA: Transaction menimpa seluruh node artikel.
+            // SEKARANG: Transaction hanya menimpa child 'views'.
+            articlesRef.child(id).child('views').transaction((currentViews) => {
                 return (currentViews || 0) + 1;
             });
 
@@ -1348,6 +1358,13 @@
             }
         }
 
+        // FIX: CLOSE FUNCTION UPDATED TO ENSURE GRID IS VISIBLE
+        function closeReadModal() { 
+            document.getElementById('readModal').style.display = 'none'; 
+            // Safety: Reload grid in case it was emptied
+            refreshAllData();
+        }
+
         function handleSearch() {
             const q = document.getElementById('searchInput').value;
             filterArticlesByQueryAndCategory(q, 'Semua');
@@ -1383,7 +1400,6 @@
         function closeWriteModal() { document.getElementById('writeModal').style.display = 'none'; }
         function openLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
         function closeLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
-        function closeReadModal() { document.getElementById('readModal').style.display = 'none'; }
         function openPedomanModal() { document.getElementById('pedomanModal').style.display = 'block'; }
         function closePedomanModal() { document.getElementById('pedomanModal').style.display = 'none'; }
         window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; };
