@@ -848,6 +848,19 @@
             });
             refreshAllData();
             if(isAdmin) renderAdminDashboard();
+
+            // --- [CODE BARU: DIRECT ACCESS / DEEP LINKING] ---
+            // Cek apakah ada parameter article_id di URL saat pertama kali load
+            const urlParams = new URLSearchParams(window.location.search);
+            const articleIdFromUrl = urlParams.get('article_id');
+            if (articleIdFromUrl) {
+                // Cari artikel yang sesuai
+                const targetArt = articles.find(a => a.id == articleIdFromUrl);
+                if (targetArt) {
+                    // Buka popup artikel
+                    openReadArticle(articleIdFromUrl);
+                }
+            }
         });
 
         // --- UPGRADED AQI WIDGET LOGIC ---
@@ -1290,6 +1303,18 @@
                 return (currentViews || 0) + 1;
             });
 
+            // --- [CODE BARU: UPDATE URL] ---
+            const newUrl = window.location.pathname + '?article_id=' + id;
+            window.history.pushState({path: newUrl}, '', newUrl);
+            document.title = art.title + " - FerCy News ID"; // Ganti judul tab untuk SEO
+
+            // Update Meta Description (Simple)
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+                let strippedContent = art.content.replace(/(<([^>]+)>)/gi, "").substring(0, 150);
+                metaDesc.setAttribute("content", strippedContent + "...");
+            }
+
             const related = articles.filter(a => a.category === art.category && a.id !== art.id && a.status === 'published')
                                     .sort(() => 0.5 - Math.random())
                                     .slice(0, 3);
@@ -1361,6 +1386,12 @@
         // FIX: CLOSE FUNCTION UPDATED TO ENSURE GRID IS VISIBLE
         function closeReadModal() { 
             document.getElementById('readModal').style.display = 'none'; 
+            
+            // --- [CODE BARU: RESET URL] ---
+            const baseUrl = window.location.pathname;
+            window.history.pushState({path: baseUrl}, '', baseUrl);
+            document.title = "FerCy News ID Portal"; // Kembalikan judul awal
+
             // Safety: Reload grid in case it was emptied
             refreshAllData();
         }
