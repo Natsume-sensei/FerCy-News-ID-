@@ -84,6 +84,7 @@
 
         /* --- RESET & BASIC --- */
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
@@ -97,13 +98,16 @@
         a { text-decoration: none; color: inherit; transition: var(--transition); }
         ul { list-style: none; padding: 0; margin: 0; }
 
-        /* --- HEADER --- */
+        /* --- HEADER (STICKY FIX) --- */
         header {
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
             padding: 1rem 0;
-            position: sticky; top: 0; z-index: 1000;
-            box-shadow: var(--shadow-sm);
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; /* High Z-Index ensures it stays on top */
+            box-shadow: var(--shadow-md); /* Stronger shadow for sticky effect */
+            transition: var(--transition);
         }
         .header-inner {
             max-width: 1280px; margin: 0 auto; padding: 0 20px;
@@ -117,6 +121,9 @@
         .logo span { color: var(--secondary); font-style: italic; }
         
         .nav-tools { display: flex; align-items: center; gap: 12px; }
+
+        /* --- ADMIN BUTTON HIDDEN BY DEFAULT --- */
+        #adminBtn { display: none; } 
 
         /* --- BUTTONS --- */
         .btn {
@@ -197,7 +204,7 @@
         }
         .tag:hover { background: var(--secondary); color: white; }
 
-        /* --- AQI WIDGET REDESIGN (Professional UI) --- */
+        /* --- AQI WIDGET REDESIGN --- */
         .aqi-widget {
             position: relative;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -313,7 +320,7 @@
         .aqi-moderate { background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%); }
         .aqi-unhealthy { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
 
-        /* --- NEW FEATURE: WORLD WIDGET --- */
+        /* --- WORLD WIDGET --- */
         .world-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -380,12 +387,24 @@
         .card-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
         .card-cat { color: var(--secondary); font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* BOOKMARK BUTTON */
-        .btn-bookmark {
-            background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.1rem; transition: 0.2s;
+        /* FIX: BOOKMARK BUTTON (Dipindah posisi dan Z-Index supaya bisa diklik) */
+        .btn-bookmark-absolute {
+            position: absolute;
+            top: 15px; 
+            right: 15px; /* Disesuaikan agar tidak tumpang tindih dengan breaking badge jika ada */
+            z-index: 20; /* Lebih tinggi dari card-back */
+            background: rgba(255,255,255,0.8);
+            border: none; cursor: pointer; color: var(--text-muted); 
+            font-size: 1.1rem; transition: 0.2s;
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .btn-bookmark:hover { color: var(--secondary); transform: scale(1.1); }
-        .btn-bookmark.active { color: var(--secondary); }
+        body.dark-mode .btn-bookmark-absolute { background: rgba(30, 41, 59, 0.8); }
+        .article-card-container.breaking-news .btn-bookmark-absolute { right: auto; left: 15px; } /* Pindah kiri kalau ada breaking news */
+
+        .btn-bookmark-absolute:hover { color: var(--secondary); transform: scale(1.1); background: white; }
+        .btn-bookmark-absolute.active { color: var(--secondary); }
 
         .card-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem 0; line-height: 1.4; color: var(--text-main); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .card-meta { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem; }
@@ -403,6 +422,19 @@
         .fb { background: #1877f2; } .tw { background: #1da1f2; } .wa { background: #25d366; }
         .pagination-container { margin-top: 3rem; display: flex; justify-content: center; align-items: center; gap: 15px; }
 
+        /* --- SCROLL TO TOP BTN --- */
+        .scroll-top-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: var(--secondary); color: white;
+            border: none; box-shadow: var(--shadow-lg);
+            cursor: pointer; display: none; /* Hidden by default */
+            align-items: center; justify-content: center;
+            font-size: 1.2rem; z-index: 1000;
+            transition: var(--transition);
+        }
+        .scroll-top-btn:hover { transform: translateY(-5px); background: #1d4ed8; }
+
         /* --- FOOTER --- */
         .site-footer { background: #0f172a; color: white; padding: 4rem 20px 2rem; margin-top: 4rem; }
         .footer-content { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem; }
@@ -412,7 +444,8 @@
         .footer-social-share { display: flex; gap: 10px; }
         .footer-share-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; }
         .footer-share-btn:hover { background: var(--secondary); }
-        .copyright-bar { text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #1e293b; color: #64748b; font-size: 0.9rem; }
+        .copyright-bar { text-align: center; margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #1e293b; color: #64748b; font-size: 0.9rem; cursor: pointer; user-select: none; }
+        .copyright-bar:hover { color: white; }
 
         /* --- MODALS & FORMS --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 2000; overflow-y: auto; }
@@ -529,9 +562,10 @@
                 </div>
             </div>
             <div class="sidebar-section" id="worldWidget">
-                <h3><i class="fas fa-globe-asia" style="color:var(--secondary); margin-right:5px;"></i> Dunia Terkini</h3>
+                <h3><i class="fas fa-globe-asia" style="color:var(--secondary); margin-right:5px;"></i> Dunia Terkini (Live)</h3>
                 <div class="world-grid" id="worldData">
-                    </div>
+                    <div style="text-align:center; padding:10px;">Loading Data...</div>
+                </div>
             </div>
             <input type="text" id="searchInput" class="search-box" placeholder="Cari topik..." onkeyup="handleSearch()">
             
@@ -569,6 +603,8 @@
         </main>
     </div>
 
+    <button onclick="scrollToTop()" class="scroll-top-btn" id="scrollTopBtn" title="Ke Atas"><i class="fas fa-arrow-up"></i></button>
+
     <footer class="site-footer">
         <div class="footer-content">
             <div class="footer-col">
@@ -599,7 +635,7 @@
                 </div>
             </div>
         </div>
-        <div class="copyright-bar">&copy; 2025 FerCy News ID Group. All Rights Reserved.</div>
+        <div class="copyright-bar" ondblclick="enableAdminMode()" title="Double Click for Admin">&copy; 2025 FerCy News ID Group. All Rights Reserved.</div>
     </footer>
 
     <div id="writeModal" class="modal">
@@ -758,8 +794,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- NEW FEATURE 3: SIMULATED PWA MANIFEST ---
-        // Membuat Blob URL untuk manifest agar browser mendeteksi sebagai web app (Single File Solution)
+        // --- NEW FEATURE: MANIFEST & PWA ---
         const manifestData = {
             "name": "FerCy News ID",
             "short_name": "FerCy News",
@@ -791,7 +826,6 @@
 
         let articles = []; 
 
-        // --- RESTORED: 13 ARTICLES DEFAULT DATA ---
         const defaultArticles = [
             { id: 1, title: "Revolusi Hijau: Kota Masa Depan", author: "Sarah Wijaya", date: "2025-10-12", category: "Lingkungan", image: "https://images.unsplash.com/photo-1518005052357-e9847508d571?auto=format&fit=crop&w=800&q=80", tags: ["#EcoCity"], status: 'published', views: 120, isBreaking: false, content: "<h3>Kota Ramah Lingkungan</h3><p>Kota masa depan...</p>" },
             { id: 2, title: "AI Generatif dan Etika Digital", author: "Budi Santoso", date: "2025-11-05", category: "Teknologi", image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80", tags: ["#AI"], status: 'published', views: 345, isBreaking: true, content: "<h3>Kecerdasan Buatan</h3><p>AI semakin canggih...</p>" },
@@ -834,7 +868,6 @@
         articlesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                // FIX UNDEFINED BUG: Filter only valid objects with a title
                 articles = Object.values(data).filter(a => a && a.title);
             } else {
                 defaultArticles.forEach(art => { articlesRef.child(art.id).set(art); });
@@ -849,72 +882,89 @@
             refreshAllData();
             if(isAdmin) renderAdminDashboard();
 
-            // --- [CODE BARU: DIRECT ACCESS / DEEP LINKING] ---
-            // Cek apakah ada parameter article_id di URL saat pertama kali load
+            // Direct Access / Deep Linking
             const urlParams = new URLSearchParams(window.location.search);
             const articleIdFromUrl = urlParams.get('article_id');
             if (articleIdFromUrl) {
-                // Cari artikel yang sesuai
                 const targetArt = articles.find(a => a.id == articleIdFromUrl);
-                if (targetArt) {
-                    // Buka popup artikel
-                    openReadArticle(articleIdFromUrl);
-                }
+                if (targetArt) { openReadArticle(articleIdFromUrl); }
             }
         });
 
-        // --- UPGRADED AQI WIDGET LOGIC ---
+        // --- UPGRADED AQI & REAL WEATHER WIDGET (OPEN-METEO API) ---
         function fetchAirQuality() {
-            // Mock Data Generation
-            const mockAQI = Math.floor(Math.random() * (160 - 30 + 1) + 30); 
-            const mockPM25 = (mockAQI * 0.45).toFixed(1);
-            const mockWind = Math.floor(Math.random() * 20 + 5);
-            const mockTemp = Math.floor(Math.random() * 5 + 28);
+            // Using Jakarta Coordinates for Main Widget
+            const lat = -6.2088, lon = 106.8456; 
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&air_quality=pm2_5`;
 
-            // Elements
-            const scoreEl = document.getElementById('aqiScore');
-            const statusEl = document.getElementById('aqiStatus');
-            const cardEl = document.getElementById('aqiCard');
-            
-            // Additional Details
-            document.getElementById('pm25Val').innerText = mockPM25;
-            document.getElementById('windSpeed').innerText = mockWind;
-            document.getElementById('tempVal').innerText = mockTemp;
+            fetch(url).then(res => res.json()).then(data => {
+                const current = data.current;
+                const temp = Math.round(current.temperature_2m);
+                const wind = Math.round(current.wind_speed_10m);
+                const pm25 = data.current.pm2_5 || 45; // Fallback if pm2.5 not avail in standard free tier sometimes
+                
+                // Estimate US AQI from PM2.5 roughly
+                let aqi = 0;
+                if(pm25 <= 12) aqi = Math.round((50/12)*pm25);
+                else if(pm25 <= 35.4) aqi = Math.round(((100-51)/(35.4-12.1))*(pm25-12.1)+51);
+                else aqi = Math.round(((150-101)/(55.4-35.5))*(pm25-35.5)+101);
 
-            // Animate Number
-            scoreEl.innerText = mockAQI;
+                document.getElementById('aqiScore').innerText = aqi;
+                document.getElementById('pm25Val').innerText = pm25;
+                document.getElementById('windSpeed').innerText = wind;
+                document.getElementById('tempVal').innerText = temp;
 
-            // Remove previous color classes
-            cardEl.classList.remove('aqi-good', 'aqi-moderate', 'aqi-unhealthy');
+                const cardEl = document.getElementById('aqiCard');
+                const statusEl = document.getElementById('aqiStatus');
+                cardEl.classList.remove('aqi-good', 'aqi-moderate', 'aqi-unhealthy');
 
-            if(mockAQI <= 50) {
-                statusEl.innerText = "Baik";
-                cardEl.classList.add('aqi-good');
-            } else if (mockAQI <= 100) {
-                statusEl.innerText = "Sedang";
-                cardEl.classList.add('aqi-moderate');
-            } else {
-                statusEl.innerText = "Tidak Sehat";
-                cardEl.classList.add('aqi-unhealthy');
-            }
+                if(aqi <= 50) { statusEl.innerText = "Baik"; cardEl.classList.add('aqi-good'); }
+                else if (aqi <= 100) { statusEl.innerText = "Sedang"; cardEl.classList.add('aqi-moderate'); }
+                else { statusEl.innerText = "Tidak Sehat"; cardEl.classList.add('aqi-unhealthy'); }
+            }).catch(e => {
+                console.error("Weather Error:", e);
+                // Fallback Mock
+                document.getElementById('aqiScore').innerText = "--";
+            });
         }
         fetchAirQuality();
 
-        // --- NEW FEATURE: WORLD CLOCK & WEATHER LOGIC ---
-        const majorCities = [
-            { name: "New York", tz: "America/New_York", icon: "fa-cloud", temp: 12 },
-            { name: "London", tz: "Europe/London", icon: "fa-cloud-rain", temp: 8 },
-            { name: "Tokyo", tz: "Asia/Tokyo", icon: "fa-sun", temp: 22 },
-            { name: "Jakarta", tz: "Asia/Jakarta", icon: "fa-cloud-sun", temp: 31 },
-            { name: "Sydney", tz: "Australia/Sydney", icon: "fa-wind", temp: 19 }
+        // --- REAL WORLD WEATHER (Open-Meteo) ---
+        const worldCities = [
+            { name: "New York", lat: 40.7128, lon: -74.0060, tz: "America/New_York" },
+            { name: "London", lat: 51.5074, lon: -0.1278, tz: "Europe/London" },
+            { name: "Tokyo", lat: 35.6762, lon: 139.6503, tz: "Asia/Tokyo" },
+            { name: "Jakarta", lat: -6.2088, lon: 106.8456, tz: "Asia/Jakarta" },
+            { name: "Sydney", lat: -33.8688, lon: 151.2093, tz: "Australia/Sydney" }
         ];
 
-        function renderWorldWidget() {
+        function getWeatherIcon(code) {
+            // WMO Weather interpretation codes (WW)
+            if(code <= 3) return "fa-sun";
+            if(code <= 48) return "fa-cloud";
+            if(code <= 67) return "fa-cloud-rain";
+            if(code <= 77) return "fa-snowflake";
+            if(code <= 99) return "fa-bolt";
+            return "fa-cloud";
+        }
+
+        async function renderWorldWidget() {
             const container = document.getElementById('worldData');
             let html = '';
-            majorCities.forEach(city => {
-                // Initial time render
+            
+            // Build requests
+            const promises = worldCities.map(city => 
+                fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,weather_code&timezone=auto`)
+                .then(res => res.json())
+                .then(data => ({...city, temp: Math.round(data.current.temperature_2m), code: data.current.weather_code}))
+            );
+
+            const results = await Promise.all(promises);
+
+            results.forEach(city => {
                 const now = new Date().toLocaleTimeString("en-US", {timeZone: city.tz, hour12: false, hour: '2-digit', minute:'2-digit'});
+                const icon = getWeatherIcon(city.code);
+                
                 html += `
                 <div class="world-item">
                     <div style="display:flex; flex-direction:column; gap:2px;">
@@ -924,7 +974,7 @@
                         <div class="world-time" id="time-${city.name.replace(/\s/g,'')}">${now}</div>
                     </div>
                     <div class="world-weather">
-                        <i class="fas ${city.icon}"></i> ${city.temp}°C
+                        <i class="fas ${icon}"></i> ${city.temp}°C
                     </div>
                 </div>`;
             });
@@ -932,7 +982,7 @@
         }
 
         function updateWorldClocks() {
-             majorCities.forEach(city => {
+             worldCities.forEach(city => {
                 const el = document.getElementById(`time-${city.name.replace(/\s/g,'')}`);
                 if(el) {
                     el.innerText = new Date().toLocaleTimeString("en-US", {timeZone: city.tz, hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
@@ -943,16 +993,35 @@
         renderWorldWidget();
         setInterval(updateWorldClocks, 1000); // Live Update
 
+        // --- GLOBAL VARIABLES ---
         const ITEMS_PER_PAGE = 9; 
         let currentPage = 1;
         let currentFilteredArticles = []; 
         let currentCategoryFilter = 'Semua';
         let isAdmin = false;
 
+        // --- NEW ADMIN LOGIC: HIDDEN TRIGGER IN FOOTER ---
+        // Function called by Double Clicking the Copyright text
+        function enableAdminMode() {
+            localStorage.setItem('fercy_admin_device', 'true');
+            checkAdminDevice();
+            alert("Mode Admin Diaktifkan untuk perangkat ini!");
+        }
+
+        // Check if device is authorized
+        function checkAdminDevice() {
+            if(localStorage.getItem('fercy_admin_device') === 'true') {
+                document.getElementById('adminBtn').style.display = 'inline-flex';
+            }
+        }
+        checkAdminDevice(); // Run on load
+
         function handleAdminClick() { isAdmin ? openAdminDashboard() : openLoginModal(); }
         
         function verifyAdmin() {
-            if (document.getElementById('adminPassword').value === '1234') {
+            const pass = document.getElementById('adminPassword').value;
+            // NEW PASSWORD
+            if (pass === 'FerCyadmin1997!@#$%^&*()') {
                 isAdmin = true;
                 document.getElementById('adminText').innerText = "Dashboard";
                 document.getElementById('adminBtn').classList.replace('btn-outline', 'btn-primary');
@@ -984,13 +1053,10 @@
             document.getElementById('categoryLegend').innerHTML = legendHtml;
 
             const tbody = document.getElementById('adminTableBody'); tbody.innerHTML = '';
-            // FIX: Filter undefined articles before sorting
             const sortedArticles = [...articles].filter(a => a && a.id).sort((a, b) => (a.status === 'pending' ? -1 : 1));
 
             sortedArticles.forEach(art => {
-                // Safety check
                 if(!art.title) return;
-
                 const statusBadge = art.status === 'published' ? `<span class="badge badge-published">Published</span>` : `<span class="badge badge-pending">Pending</span>`;
                 const quickPublishBtn = art.status === 'pending' ? `<button class="btn btn-success" style="padding:0.4rem;" title="Publikasi Cepat" onclick="quickPublish('${art.id}')"><i class="fas fa-check"></i></button>` : '';
 
@@ -1018,14 +1084,13 @@
         }
 
         function openEditArticle(id) {
-            // FIX: Parse Int if ID looks like a number but passed as string, though '==' works for both
             const art = articles.find(a => a.id == id);
             if(!art) return;
 
             document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Artikel (Admin)';
             document.getElementById('postId').value = art.id;
             document.getElementById('postTitle').value = art.title;
-            document.getElementById('postIsBreaking').checked = art.isBreaking || false; // LOAD BREAKING STATUS
+            document.getElementById('postIsBreaking').checked = art.isBreaking || false; 
             document.getElementById('postAuthor').value = art.author;
             document.getElementById('postCategory').value = art.category;
             document.getElementById('postImage').value = art.image;
@@ -1050,7 +1115,7 @@
             const targetStatus = document.getElementById('targetStatus').value;
             
             const title = document.getElementById('postTitle').value;
-            const isBreaking = document.getElementById('postIsBreaking').checked; // GET BREAKING STATUS
+            const isBreaking = document.getElementById('postIsBreaking').checked; 
             const author = document.getElementById('postAuthor').value;
             const category = document.getElementById('postCategory').value;
             const image = document.getElementById('postImage').value;
@@ -1075,7 +1140,7 @@
             } else {
                 const newId = Date.now();
                 articleData.id = newId;
-                articleData.views = 0; // Initialize views
+                articleData.views = 0; 
                 articlesRef.child(newId).set(articleData)
                 .then(() => {
                     alert("Artikel Berhasil Disubmit! Menunggu review admin.");
@@ -1085,7 +1150,6 @@
             }
         }
 
-        // FIX: DELETE FUNCTION now handles string/number IDs correctly
         function deleteOneArticle(id) {
             if(confirm("Hapus artikel ini permanen?")) { 
                 articlesRef.child(id).remove()
@@ -1094,7 +1158,6 @@
             }
         }
 
-        // FIX: BULK DELETE now ensures it grabs the right ID value
         function bulkDeleteArticles() {
             const checkboxes = document.querySelectorAll('.bulk-check:checked');
             if(checkboxes.length === 0) return alert("Pilih minimal satu artikel!");
@@ -1114,13 +1177,10 @@
         var quill = new Quill('#editor', { theme: 'snow', modules: { toolbar: [ [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline'], [{ 'align': [] }], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['link', 'image', 'video'], ['clean'] ] } });
 
         function refreshAllData() {
-            // FIX: GUNAKAN NILAI PENCARIAN SAAT INI AGAR HASIL PENCARIAN TIDAK HILANG SAAT DATA DIUPDATE
             const currentSearch = document.getElementById('searchInput').value || '';
-            // Keep current filter active upon refresh
             filterArticlesByQueryAndCategory(currentSearch, currentCategoryFilter, false); 
         }
 
-        // --- NEW FEATURE 1: BOOKMARK LOGIC ---
         function getSavedArticles() {
             return JSON.parse(localStorage.getItem('savedArticles') || '[]');
         }
@@ -1136,14 +1196,13 @@
                 alert("Artikel disimpan ke Bookmark.");
             }
             localStorage.setItem('savedArticles', JSON.stringify(saved));
-            refreshAllData(); // Refresh to update icons
+            refreshAllData(); 
         }
 
         function filterArticlesByQueryAndCategory(query, category, resetPage = true, element = null) {
             if(resetPage) currentPage = 1;
             currentCategoryFilter = category;
 
-            // Update Active Menu UI
             if(element) {
                 document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active-menu'));
                 element.classList.add('active-menu');
@@ -1153,8 +1212,6 @@
 
             currentFilteredArticles = articles.filter(a => {
                 const isPublished = a.status === 'published';
-                
-                // Filter Logic: Tersimpan vs Kategori Biasa
                 let matchCat = true;
                 if(category === 'Tersimpan') {
                     matchCat = savedIds.includes(a.id);
@@ -1168,7 +1225,6 @@
                 return isPublished && matchCat && matchQuery;
             });
 
-            // FIX: SAFETY CHECK IF PAGE IS OUT OF BOUNDS AFTER REFRESH
             const totalPages = Math.ceil(currentFilteredArticles.length / ITEMS_PER_PAGE);
             if (!resetPage && currentPage > totalPages && totalPages > 0) {
                 currentPage = 1;
@@ -1196,27 +1252,30 @@
             const savedIds = getSavedArticles();
 
             pageData.forEach(art => {
+                // FIX: DYNAMIC SHARE URL
+                const articleUrl = `${window.location.origin}${window.location.pathname}?article_id=${art.id}`;
                 const shareText = encodeURIComponent(`Baca: "${art.title}"`);
-                const dummyUrl = encodeURIComponent("https://fercynews.com"); 
+                const shareUrlEncoded = encodeURIComponent(articleUrl);
+
                 const isSaved = savedIds.includes(art.id);
                 const bookmarkClass = isSaved ? 'fas' : 'far';
                 
-                // Breaking News Class
                 const breakingClass = art.isBreaking ? 'breaking-news' : '';
                 const breakingBadge = art.isBreaking ? '<div class="breaking-badge">BREAKING</div>' : '';
 
                 const card = document.createElement('div'); card.className = `article-card-container ${breakingClass}`;
                 card.innerHTML = `
                     <div class="article-card">
+                        <button class="btn-bookmark-absolute ${isSaved ? 'active' : ''}" onclick="toggleBookmark(${art.id}, event)" title="Simpan Artikel">
+                            <i class="${bookmarkClass} fa-bookmark"></i>
+                        </button>
+
                         <div class="card-front">
                             ${breakingBadge}
                             <img src="${art.image}" class="card-img" alt="Cover" loading="lazy">
                             <div class="card-content">
                                 <div class="card-header-top">
                                     <div class="card-cat">${art.category}</div>
-                                    <button class="btn-bookmark ${isSaved ? 'active' : ''}" onclick="toggleBookmark(${art.id}, event)">
-                                        <i class="${bookmarkClass} fa-bookmark"></i>
-                                    </button>
                                 </div>
                                 <h3 class="card-title">${art.title}</h3>
                                 <div class="card-meta">
@@ -1228,9 +1287,9 @@
                         <div class="card-back">
                             <h3 style="font-size:1.1rem; margin-bottom:1rem;">${art.title}</h3>
                             <div class="share-buttons">
-                                <a href="https://www.facebook.com/sharer/sharer.php?u=${dummyUrl}" target="_blank" class="share-btn fb"><i class="fab fa-facebook-f"></i></a>
-                                <a href="https://twitter.com/intent/tweet?text=${shareText}&url=${dummyUrl}" target="_blank" class="share-btn tw"><i class="fab fa-twitter"></i></a>
-                                <a href="https://wa.me/?text=${shareText} ${dummyUrl}" target="_blank" class="share-btn wa"><i class="fab fa-whatsapp"></i></a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrlEncoded}" target="_blank" class="share-btn fb"><i class="fab fa-facebook-f"></i></a>
+                                <a href="https://twitter.com/intent/tweet?text=${shareText}&url=${shareUrlEncoded}" target="_blank" class="share-btn tw"><i class="fab fa-twitter"></i></a>
+                                <a href="https://wa.me/?text=${shareText} ${shareUrlEncoded}" target="_blank" class="share-btn wa"><i class="fab fa-whatsapp"></i></a>
                             </div>
                             <button class="btn btn-primary" onclick="openReadArticle(${art.id})" style="width:100%; justify-content:center;">Baca Selengkapnya</button>
                         </div>
@@ -1275,13 +1334,11 @@
         }
 
         function updateTicker() {
-            // Sort by breaking news first
             const breaking = articles.filter(a => a.status === 'published').slice(0,5);
             document.getElementById('tickerContent').innerHTML = breaking.map(a => `<div class="ticker-item" onclick="openReadArticle(${a.id})">${a.title}</div>`).join('');
         }
 
         function updateTrendingTags() {
-            // NEW FEATURE 2: Update Trending based on VIEWS instead of tags
             const trending = articles.filter(a => a.status === 'published')
                                      .sort((a,b) => (b.views || 0) - (a.views || 0))
                                      .slice(0, 8);
@@ -1296,19 +1353,14 @@
         function openReadArticle(id) {
             const art = articles.find(a => a.id == id); if(!art) return;
             
-            // --- FIX CRITICAL BUG ---
-            // SEBELUMNYA: Transaction menimpa seluruh node artikel.
-            // SEKARANG: Transaction hanya menimpa child 'views'.
             articlesRef.child(id).child('views').transaction((currentViews) => {
                 return (currentViews || 0) + 1;
             });
 
-            // --- [CODE BARU: UPDATE URL] ---
             const newUrl = window.location.pathname + '?article_id=' + id;
             window.history.pushState({path: newUrl}, '', newUrl);
-            document.title = art.title + " - FerCy News ID"; // Ganti judul tab untuk SEO
+            document.title = art.title + " - FerCy News ID"; 
 
-            // Update Meta Description (Simple)
             let metaDesc = document.querySelector('meta[name="description"]');
             if (metaDesc) {
                 let strippedContent = art.content.replace(/(<([^>]+)>)/gi, "").substring(0, 150);
@@ -1335,7 +1387,6 @@
                 relatedHtml += `</div></div>`;
             }
 
-            // Breaking News Badge in Modal
             const breakingBadge = art.isBreaking ? '<span style="background:var(--danger); color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem; margin-right:10px;">BREAKING</span>' : '';
 
             document.getElementById('readContentContainer').innerHTML = `
@@ -1371,7 +1422,7 @@
                     reload: true,
                     config: function () {
                         this.page.identifier = art.id;
-                        this.page.url = "https://fercynews.com/article/" + art.id; 
+                        this.page.url = window.location.href; 
                         this.page.title = art.title;
                     }
                 });
@@ -1383,16 +1434,12 @@
             }
         }
 
-        // FIX: CLOSE FUNCTION UPDATED TO ENSURE GRID IS VISIBLE
         function closeReadModal() { 
             document.getElementById('readModal').style.display = 'none'; 
             
-            // --- [CODE BARU: RESET URL] ---
             const baseUrl = window.location.pathname;
             window.history.pushState({path: baseUrl}, '', baseUrl);
-            document.title = "FerCy News ID Portal"; // Kembalikan judul awal
-
-            // Safety: Reload grid in case it was emptied
+            document.title = "FerCy News ID Portal"; 
             refreshAllData();
         }
 
@@ -1410,6 +1457,17 @@
             document.getElementById('searchInput').value = t;
             filterArticlesByQueryAndCategory(t, 'Semua');
         }
+
+        // --- SCROLL TO TOP LOGIC ---
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTopBtn");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.style.display = "flex";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+        function scrollToTop() { document.body.scrollTop = 0; document.documentElement.scrollTop = 0; }
 
         function openWriteModal() { 
             document.getElementById('articleForm').reset();
