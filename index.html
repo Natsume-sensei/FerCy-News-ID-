@@ -891,42 +891,97 @@
             }
         });
 
-        // --- UPGRADED AQI & REAL WEATHER WIDGET (OPEN-METEO API) ---
+        // --- UPGRADED AQI LOGIC (WITH UX FEEDBACK) ---
         function fetchAirQuality() {
-            // Using Jakarta Coordinates for Main Widget
+            // 1. UI FEEDBACK: Kasih tanda sedang loading
+            const refreshIcon = document.querySelector('.aqi-refresh i');
+            const statusEl = document.getElementById('aqiStatus');
+            const scoreEl = document.getElementById('aqiScore');
+            
+            // Tambah kelas fa-spin (efek putar bawaan FontAwesome)
+            refreshIcon.classList.add('fa-spin');
+            statusEl.innerText = "Update...";
+            statusEl.style.opacity = "0.7";
+
+            // 2. FETCH DATA ASLI
+            // Menggunakan koordinat Jakarta
             const lat = -6.2088, lon = 106.8456; 
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m&air_quality=pm2_5`;
+            // Tambahkan parameter &timeformat=unixtime agar cache browser tidak nyangkut
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,pm2_5&timezone=auto&timestamp=${new Date().getTime()}`;
 
-            fetch(url).then(res => res.json()).then(data => {
-                const current = data.current;
-                const temp = Math.round(current.temperature_2m);
-                const wind = Math.round(current.wind_speed_10m);
-                const pm25 = data.current.pm2_5 || 45; // Fallback if pm2.5 not avail in standard free tier sometimes
-                
-                // Estimate US AQI from PM2.5 roughly
-                let aqi = 0;
-                if(pm25 <= 12) aqi = Math.round((50/12)*pm25);
-                else if(pm25 <= 35.4) aqi = Math.round(((100-51)/(35.4-12.1))*(pm25-12.1)+51);
-                else aqi = Math.round(((150-101)/(55.4-35.5))*(pm25-35.5)+101);
+            fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error("Gagal koneksi API");
+                return res.json();
+            })
+            .then(data => {
+                // Beri jeda sedikit (500ms) biar efek loading terlihat user (karena API terlalu cepat)
+                setTimeout(() => {
+                    const current = data.current;
+                    const temp = Math.round(current.temperature_2m);
+                    const wind = Math.round(current.wind_speed_10m);
+                    const pm25 = current.pm2_5 || 45; // Fallback jika data null
+                    
+                    // Konversi PM2.5 ke US AQI (Rumus Estimasi)
+                    let aqi = 0;
+                    if(pm25 <= 12) aqi = Math.round((50/12)*pm25);
+                    else if(pm25 <= 35.4) aqi = Math.round(((100-51)/(35.4-12.1))*(pm25-12.1)+51);
+                    else aqi = Math.round(((150-101)/(55.4-35.5))*(pm25-35.5)+101);
 
-                document.getElementById('aqiScore').innerText = aqi;
-                document.getElementById('pm25Val').innerText = pm25;
-                document.getElementById('windSpeed').innerText = wind;
-                document.getElementById('tempVal').innerText = temp;
+                    // Update UI
+                    scoreEl.innerText = aqi;
+                    document.getElementById('pm25Val').innerText = pm25;
+                    document.getElementById('windSpeed').innerText = wind;
+                    document.getElementById('tempVal').innerText = temp;
 
-                const cardEl = document.getElementById('aqiCard');
-                const statusEl = document.getElementById('aqiStatus');
-                cardEl.classList.remove('aqi-good', 'aqi-moderate', 'aqi-unhealthy');
+                    const cardEl = document.getElementById('aqiCard');
+                    
+                    // Reset Kelas Warna
+                    cardEl.classList.remove('aqi-good', 'aqi-moderate', 'aqi-unhealthy');
 
-                if(aqi <= 50) { statusEl.innerText = "Baik"; cardEl.classList.add('aqi-good'); }
-                else if (aqi <= 100) { statusEl.innerText = "Sedang"; cardEl.classList.add('aqi-moderate'); }
-                else { statusEl.innerText = "Tidak Sehat"; cardEl.classList.add('aqi-unhealthy'); }
-            }).catch(e => {
+                    // Tentukan Status & Warna
+                    if(aqi <= 50) { 
+                        statusEl.innerText = "Baik"; 
+                        cardEl.classList.add('aqi-good'); 
+                    } else if (aqi <= 100) { 
+                        statusEl.innerText = "Sedang"; 
+                        cardEl.classList.add('aqi-moderate'); 
+                    } else { 
+                        statusEl.innerText = "Tidak Sehat"; 
+                        cardEl.classList.add('aqi-unhealthy'); 
+                    }
+                    
+                    // Tambahkan info jam update (Supaya user tau ini data baru)
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                    // Kita manipulasi DOM sedikit untuk tambah info waktu
+                    let timeLabel = document.getElementById('lastUpdateLabel');
+                    if(!timeLabel) {
+                        timeLabel = document.createElement('div');
+                        timeLabel.id = 'lastUpdateLabel';
+                        timeLabel.style.fontSize = '0.7rem';
+                        timeLabel.style.opacity = '0.8';
+                        timeLabel.style.marginTop = '5px';
+                        document.querySelector('.aqi-main-display').appendChild(timeLabel);
+                    }
+                    timeLabel.innerText = `Update: ${timeString}`;
+
+                    // Hentikan Loading
+                    refreshIcon.classList.remove('fa-spin');
+                    statusEl.style.opacity = "1";
+
+                }, 800); // Jeda buatan 0.8 detik
+            })
+            .catch(e => {
                 console.error("Weather Error:", e);
-                // Fallback Mock
-                document.getElementById('aqiScore').innerText = "--";
+                scoreEl.innerText = "--";
+                statusEl.innerText = "Offline";
+                refreshIcon.classList.remove('fa-spin');
+                alert("Gagal mengambil data cuaca. Cek koneksi internet Anda.");
             });
         }
+        
+        // Panggil fungsi pertama kali
         fetchAirQuality();
 
         // --- REAL WORLD WEATHER (Open-Meteo) ---
