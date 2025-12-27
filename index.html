@@ -4,14 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f172a">
-    <meta name="description" content="Portal Berita Lingkungan dan Teknologi Terkini">
+    
+    <title>FerCy News ID Portal</title>
+    <meta name="description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="metaDesc">
+
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="FerCy News ID" />
+    <meta property="og:title" content="FerCy News ID Portal" id="ogTitle" />
+    <meta property="og:description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="ogDesc" />
+    <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/2965/2965879.png" id="ogImage" />
+    <meta property="og:url" content="" id="ogUrl" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FerCy News ID Portal" id="twTitle" />
+    <meta name="twitter:description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="twDesc" />
+    <meta name="twitter:image" content="https://cdn-icons-png.flaticon.com/512/2965/2965879.png" id="twImage" />
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="google-site-verification" content="pseGoaomewXgIkGorPEY_V7J5CFv0GVEqIlpyADW2Q4" />
     
     <link rel="manifest" id="my-manifest-placeholder">
-    
-    <title>FerCy News ID Portal</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1461,8 +1475,8 @@
 
         function updateTrendingTags() {
             const trending = articles.filter(a => a.status === 'published')
-                                     .sort((a,b) => (b.views || 0) - (a.views || 0))
-                                     .slice(0, 8);
+                                             .sort((a,b) => (b.views || 0) - (a.views || 0))
+                                             .slice(0, 8);
             
             document.getElementById('trendingTags').innerHTML = trending.map(a => 
                 `<span class="tag" onclick="openReadArticle(${a.id})" style="font-size:0.8rem; display:block; margin-bottom:5px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
@@ -1481,7 +1495,24 @@
             // Update URL
             const newUrl = window.location.pathname + '?article_id=' + id;
             window.history.pushState({path: newUrl}, '', newUrl);
+            
+            // --- UPDATE 1: JUDUL HALAMAN ---
             document.title = art.title + " - FerCy News ID"; 
+
+            // --- UPDATE 2: META TAGS (DINAMIS VIA JS) ---
+            // Membersihkan tag HTML dari konten untuk deskripsi
+            const cleanDesc = art.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+            
+            // Update Open Graph (FB/WA/IG)
+            document.getElementById('ogTitle').setAttribute('content', art.title);
+            document.getElementById('ogDesc').setAttribute('content', cleanDesc);
+            document.getElementById('ogImage').setAttribute('content', art.image);
+            document.getElementById('ogUrl').setAttribute('content', window.location.href);
+
+            // Update Twitter Cards
+            document.getElementById('twTitle').setAttribute('content', art.title);
+            document.getElementById('twDesc').setAttribute('content', cleanDesc);
+            document.getElementById('twImage').setAttribute('content', art.image);
 
             const breakingBadge = art.isBreaking ? '<span style="background:var(--danger); color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem; margin-right:10px;">BREAKING</span>' : '';
 
@@ -1534,7 +1565,20 @@
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
 
+            // --- UPDATE 3: RESET META TAGS KE DEFAULT ---
             document.title = "FerCy News ID Portal"; 
+            
+            // Reset OG
+            document.getElementById('ogTitle').setAttribute('content', 'FerCy News ID Portal');
+            document.getElementById('ogDesc').setAttribute('content', 'Portal Berita Lingkungan dan Teknologi Terkini');
+            document.getElementById('ogImage').setAttribute('content', 'https://cdn-icons-png.flaticon.com/512/2965/2965879.png');
+            document.getElementById('ogUrl').setAttribute('content', cleanUrl);
+
+            // Reset Twitter
+            document.getElementById('twTitle').setAttribute('content', 'FerCy News ID Portal');
+            document.getElementById('twDesc').setAttribute('content', 'Portal Berita Lingkungan dan Teknologi Terkini');
+            document.getElementById('twImage').setAttribute('content', 'https://cdn-icons-png.flaticon.com/512/2965/2965879.png');
+
             refreshAllData();
         }
 
