@@ -55,7 +55,7 @@
 
         /* --- DARK MODE VARIABLES --- */
         body.dark-mode {
-            --primary: #f8fafc;
+            --primary: #f8fafc; /* Note: Primary becomes Light in dark mode */
             --secondary: #60a5fa;
             --bg-body: #0f172a;
             --bg-card: #1e293b;
@@ -161,17 +161,25 @@
         .btn-danger { background: #ef4444; color: white; }
         .btn-warning { background: #f59e0b; color: white; }
 
-        /* --- TICKER --- */
+        /* --- TICKER (UPDATED FOR DARK MODE VISIBILITY) --- */
         .ticker-wrap {
-            background: var(--primary); color: white; font-size: 0.9rem;
+            /* FIXED: Menggunakan hardcoded color agar tidak berubah jadi putih saat Dark Mode */
+            background: #0f172a; 
+            color: white; 
+            font-size: 0.9rem;
             display: flex; align-items: stretch; overflow: hidden; height: 40px;
         }
+        
+        /* Specific background for dark mode to ensure contrast against body */
+        body.dark-mode .ticker-wrap {
+            background: #1e293b; 
+        }
+
         .ticker-heading {
             background: var(--secondary); padding: 0 20px; display: flex; align-items: center;
             font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0;
             position: relative; z-index: 2;
         }
-        /* Design Clean update: remove arrow css trick, use straight block */
         .ticker-heading::after { display: none; }
         
         .ticker-move {
@@ -561,7 +569,7 @@
     </header>
 
     <div class="ticker-wrap">
-        <div class="ticker-heading"><i class="fas fa-bolt" style="margin-right: 8px; color: white;"></i> Trending</div>
+        <div class="ticker-heading"><i class="fas fa-bolt" style="margin-right: 8px; color: white;"></i> Breaking News</div>
         <div class="ticker-move" id="tickerContent"></div>
     </div>
 
@@ -1012,7 +1020,8 @@
         // Global Weather
         async function fetchGlobalWeather() {
             const container = document.getElementById('worldDataList');
-            if(container.innerHTML !== "") return; // Avoid refetch
+            // FIXED: Gunakan trim() untuk memastikan tidak ada whitespace yang dianggap konten
+            if(container.innerHTML.trim() !== "") return; 
 
             const cities = [
                 { name: "New York", lat: 40.7128, lon: -74.0060, tz: "America/New_York" },
