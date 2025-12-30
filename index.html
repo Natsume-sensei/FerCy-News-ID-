@@ -918,6 +918,9 @@
         }
         renderSkeleton();
 
+        // --- FIXED: MENAMBAHKAN FLAG AGAR TIDAK LOOPING ---
+        let isInitialLoad = true; 
+
         articlesRef.on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -944,12 +947,15 @@
             refreshAllData();
             if(isAdmin) renderAdminDashboard();
 
-            // Direct Access / Deep Linking
-            const urlParams = new URLSearchParams(window.location.search);
-            const articleIdFromUrl = urlParams.get('article_id');
-            if (articleIdFromUrl) {
-                const targetArt = articles.find(a => a.id == articleIdFromUrl);
-                if (targetArt) { openReadArticle(articleIdFromUrl); }
+            // --- FIXED: CHECK URL HANYA SAAT AWAL LOAD ---
+            if (isInitialLoad) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const articleIdFromUrl = urlParams.get('article_id');
+                if (articleIdFromUrl) {
+                    const targetArt = articles.find(a => a.id == articleIdFromUrl);
+                    if (targetArt) { openReadArticle(articleIdFromUrl); }
+                }
+                isInitialLoad = false; // Matikan flag setelah check pertama
             }
         });
 
@@ -1475,8 +1481,8 @@
 
         function updateTrendingTags() {
             const trending = articles.filter(a => a.status === 'published')
-                                             .sort((a,b) => (b.views || 0) - (a.views || 0))
-                                             .slice(0, 8);
+                                     .sort((a,b) => (b.views || 0) - (a.views || 0))
+                                     .slice(0, 8);
             
             document.getElementById('trendingTags').innerHTML = trending.map(a => 
                 `<span class="tag" onclick="openReadArticle(${a.id})" style="font-size:0.8rem; display:block; margin-bottom:5px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
