@@ -1364,22 +1364,6 @@
 
         function submitArticle(e) {
             e.preventDefault();
-
-            // --- UPDATE (Poin 4): CONTENT SAFETY FILTER ---
-            const sensitiveWords = ['kasar', 'bodoh', 'sara', 'judi', 'porn', 'kekerasan', 'benci', 'anarkis', 'penipuan'];
-            
-            const titleCheck = document.getElementById('postTitle').value.toLowerCase();
-            const contentCheck = quill.getText().toLowerCase(); // Ambil teks polos dari editor
-            const combinedCheck = titleCheck + " " + contentCheck;
-
-            // Cek apakah ada kata terlarang
-            const foundBadWord = sensitiveWords.find(word => combinedCheck.includes(word));
-
-            if (foundBadWord) {
-                alert(`MAAF: Artikel tidak dapat dikirim karena mengandung kata sensitif/tidak pantas: "${foundBadWord}".\n\nFerCy News ID menjunjung tinggi jurnalisme positif.`);
-                return; // Stop proses submit
-            }
-            // ------------------------------------------------
             
             const postId = document.getElementById('postId').value;
             let targetStatus = document.getElementById('targetStatus').value;
