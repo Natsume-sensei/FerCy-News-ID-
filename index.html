@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f172a">
     
-    <title>FerCy News ID Portal</title>
+    <title>FerCy News ID Portal - Tahap 2</title>
     <meta name="description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="metaDesc">
 
     <meta property="og:type" content="article" />
@@ -32,7 +32,7 @@
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
     <style>
-        /* --- MODERN VARIABLES & CLEAN DESIGN UPDATE --- */
+        /* --- MODERN VARIABLES & CLEAN DESIGN UPDATE (TAHAP 2) --- */
         :root {
             /* Palette Update: Lebih soft dan modern */
             --primary: #0f172a; /* Dark Navy */
@@ -49,8 +49,14 @@
             --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-            --radius: 16px; /* Lebih rounded */
+            --radius: 20px; /* Lebih rounded untuk kesan modern */
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* TAHAP 2: Neon & Glass Variables */
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --glass-blur: blur(16px);
+            --neon-glow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
 
         /* --- DARK MODE VARIABLES --- */
@@ -62,6 +68,8 @@
             --text-main: #f1f5f9;
             --text-muted: #94a3b8;
             --border: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* --- FIX: EDITOR DARK MODE --- */
@@ -117,10 +125,10 @@
 
         /* --- HEADER (UPDATED: GLASSMORPHISM & CLEAN) --- */
         header {
-            background: rgba(255, 255, 255, 0.85); /* Transparan */
-            backdrop-filter: blur(12px); /* Blur effect */
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border);
+            background: var(--glass-bg); /* TAHAP 2: Variable Glass */
+            backdrop-filter: var(--glass-blur); /* TAHAP 2: Variable Blur */
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: var(--glass-border);
             padding: 1rem 0;
             position: sticky; 
             top: 0; 
@@ -128,10 +136,7 @@
             box-shadow: var(--shadow-sm);
             transition: var(--transition);
         }
-        body.dark-mode header {
-            background: rgba(15, 23, 42, 0.85);
-        }
-
+        
         .header-inner {
             max-width: 1280px; margin: 0 auto; padding: 0 20px;
             display: flex; justify-content: space-between; align-items: center;
@@ -140,7 +145,7 @@
             font-size: 1.8rem; font-weight: 700; color: var(--text-main);
             display: flex; align-items: center; gap: 10px; cursor: pointer;
         }
-        .logo i { color: var(--secondary); }
+        .logo i { color: var(--secondary); text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); /* TAHAP 2: Subtle Glow */ }
         .logo span { color: var(--secondary); font-style: italic; }
         
         .nav-tools { display: flex; align-items: center; gap: 12px; }
@@ -154,12 +159,27 @@
             border: none; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px;
         }
         .btn-primary { background: var(--secondary); color: white; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
-        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4); }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); box-shadow: var(--neon-glow); }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
         .btn-outline:hover { border-color: var(--secondary); color: var(--secondary); background: rgba(59, 130, 246, 0.05); }
         .btn-success { background: #10b981; color: white; }
         .btn-danger { background: #ef4444; color: white; }
         .btn-warning { background: #f59e0b; color: white; }
+        
+        /* TAHAP 2: AI Buttons */
+        .btn-ai {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+        .btn-ai:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+        }
+        .ai-tools-container {
+            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+        }
 
         /* --- TICKER (UPDATED FOR DARK MODE VISIBILITY) --- */
         .ticker-wrap {
@@ -186,8 +206,11 @@
             display: flex; align-items: center; white-space: nowrap;
             animation: ticker 35s linear infinite; padding-left: 20px;
         }
+        /* TAHAP 2: Optimization - Pause animation on hover */
+        .ticker-wrap:hover .ticker-move { animation-play-state: paused; }
+
         .ticker-item { margin-right: 40px; cursor: pointer; opacity: 0.9; }
-        .ticker-item:hover { text-decoration: underline; opacity: 1; }
+        .ticker-item:hover { text-decoration: underline; opacity: 1; color: var(--secondary); }
         @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
         /* --- LAYOUT GRID --- */
@@ -339,13 +362,18 @@
         .gl-weather { font-size: 1.2rem; font-weight: 300; display: flex; align-items: center; gap: 5px; }
 
 
-        /* --- ARTICLE GRID & SKELETON --- */
+        /* --- ARTICLE GRID & SKELETON (UPDATED: BENTO STYLE) --- */
         .articles-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;
         }
+        /* TAHAP 2: Bento Grid Enhancement */
         @media (min-width: 1024px) {
-            .article-card-container:first-child { grid-column: 1 / -1; height: 500px; }
-            .article-card-container:first-child .card-title { font-size: 2.2rem; }
+            /* First item is the main headline */
+            .article-card-container:first-child { 
+                grid-column: 1 / -1; 
+                height: 500px; 
+            }
+            .article-card-container:first-child .card-title { font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         }
 
         /* SKELETON LOADING */
@@ -359,7 +387,7 @@
         body.dark-mode .skeleton-img { background: #475569; }
         body.dark-mode .skeleton-text { background: #334155; }
 
-        /* --- CARD STYLES (CLEANER) --- */
+        /* --- CARD STYLES (CLEANER & FUTURISTIC) --- */
         .article-card-container {
             height: 420px; position: relative; perspective: none;
             border-radius: var(--radius); overflow: hidden;
@@ -380,7 +408,13 @@
         @keyframes borderPulse { 0% { border-color: var(--danger); } 50% { border-color: transparent; } 100% { border-color: var(--danger); } }
         @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .article-card-container:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+        /* TAHAP 2: Hover Effects & Neon */
+        .article-card-container:hover { 
+            transform: translateY(-8px); 
+            box-shadow: var(--shadow-lg); 
+            border-color: var(--secondary);
+        }
+        
         .article-card { width: 100%; height: 100%; position: relative; background: var(--bg-card); display: flex; flex-direction: column; }
         
         .card-front { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg-card); z-index: 1; transition: var(--transition); }
@@ -425,7 +459,7 @@
         
         .view-count { display: flex; align-items: center; gap: 4px; font-weight: 500; }
 
-        .card-back { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); padding: 2rem; z-index: 10; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-top: 3px solid var(--secondary); }
+        .card-back { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; background: var(--glass-bg); backdrop-filter: blur(10px); padding: 2rem; z-index: 10; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-top: 3px solid var(--secondary); }
         body.dark-mode .card-back { background: rgba(30, 41, 59, 0.98); }
         .article-card-container:hover .card-back { transform: translateY(0); }
 
@@ -477,6 +511,29 @@
         
         /* IMAGE FIX */
         .read-content img { max-width: 100%; height: auto; display: block; margin: 1.5rem auto; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+
+        /* TAHAP 2: AI Summary Box */
+        .ai-summary-box {
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--purple);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s;
+        }
+        .ai-summary-box h4 { margin-top: 0; color: var(--purple); display: flex; align-items: center; gap: 8px; }
+        .speaking-animation {
+            display: inline-block;
+            width: 10px; height: 10px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            animation: pulseSpeech 1s infinite;
+            margin-left: 10px;
+            display: none;
+        }
+        @keyframes pulseSpeech { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+
 
         /* RELATED & COMMENTS */
         .related-section { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
@@ -868,7 +925,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
-        // --- FEATURE: MANIFEST & PWA ---
+        // --- FEATURE: MANIFEST & PWA (TAHAP 2: Service Worker Optimized) ---
         const manifestData = {
             "name": "FerCy News ID",
             "short_name": "FerCy News",
@@ -1499,6 +1556,57 @@
                  </span>`
             ).join('');
         }
+        
+        // --- TAHAP 2: AI FEATURES (Speech & Summary) ---
+        let speechSynth = window.speechSynthesis;
+        let speechUtterance = null;
+        let isSpeaking = false;
+
+        function speakContent(content) {
+            if (isSpeaking) {
+                speechSynth.cancel();
+                isSpeaking = false;
+                document.getElementById('aiSpeakBtn').innerHTML = '<i class="fas fa-volume-up"></i> Dengarkan Berita';
+                document.querySelector('.speaking-animation').style.display = 'none';
+                return;
+            }
+
+            const cleanText = content.replace(/<[^>]*>?/gm, ''); // Remove HTML
+            speechUtterance = new SpeechSynthesisUtterance(cleanText);
+            speechUtterance.lang = 'id-ID'; // Bahasa Indonesia
+            speechUtterance.rate = 1;
+            
+            speechUtterance.onend = function() {
+                isSpeaking = false;
+                document.getElementById('aiSpeakBtn').innerHTML = '<i class="fas fa-volume-up"></i> Dengarkan Berita';
+                document.querySelector('.speaking-animation').style.display = 'none';
+            };
+
+            speechSynth.speak(speechUtterance);
+            isSpeaking = true;
+            document.getElementById('aiSpeakBtn').innerHTML = '<i class="fas fa-stop-circle"></i> Stop Audio';
+            document.querySelector('.speaking-animation').style.display = 'inline-block';
+        }
+
+        function simulateAISummary(content) {
+            const summaryBox = document.getElementById('aiSummaryResult');
+            const summaryContainer = document.querySelector('.ai-summary-box');
+            summaryContainer.style.display = 'block';
+            summaryBox.innerHTML = '<i class="fas fa-spinner fa-spin"></i> FerCy AI sedang berpikir...';
+
+            setTimeout(() => {
+                const cleanText = content.replace(/<[^>]*>?/gm, '');
+                // Simple simulated summary: First 2 sentences
+                const sentences = cleanText.match(/[^\.!\?]+[\.!\?]+/g) || [cleanText];
+                const summary = sentences.slice(0, 3).join(' ');
+                
+                summaryBox.innerHTML = `
+                    <p><strong>Ringkasan Cepat:</strong></p>
+                    <p>${summary}</p>
+                    <small style="color:var(--text-muted)">*Diringkas otomatis oleh FerCy AI (Beta)</small>
+                `;
+            }, 1500); // Simulate API delay
+        }
 
         function openReadArticle(id) {
             const art = articles.find(a => a.id == id); if(!art) return;
@@ -1531,6 +1639,7 @@
 
             const breakingBadge = art.isBreaking ? '<span style="background:var(--danger); color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem; margin-right:10px;">BREAKING</span>' : '';
 
+            // TAHAP 2: Inject AI Tools & Layout
             document.getElementById('readContentContainer').innerHTML = `
                 <div class="read-header"><img src="${art.image}" class="read-cover"></div>
                 <div class="read-body">
@@ -1542,6 +1651,21 @@
                     <div class="read-meta">
                         <span>Ditulis oleh <strong>${art.author}</strong> pada ${art.date}</span>
                         <span><i class="fas fa-eye"></i> ${art.views || 0} Views</span>
+                    </div>
+
+                    <div class="ai-tools-container">
+                        <button id="aiSpeakBtn" class="btn btn-ai" onclick="speakContent(\`${art.content.replace(/`/g, "\\`").replace(/"/g, "&quot;")}\`)">
+                            <i class="fas fa-volume-up"></i> Dengarkan Berita
+                        </button>
+                        <button class="btn btn-outline" onclick="simulateAISummary(\`${art.content.replace(/`/g, "\\`").replace(/"/g, "&quot;")}\`)">
+                            <i class="fas fa-magic"></i> Ringkas dengan AI
+                        </button>
+                        <div class="speaking-animation"></div>
+                    </div>
+                    
+                    <div class="ai-summary-box">
+                        <h4><i class="fas fa-robot"></i> FerCy AI Insight</h4>
+                        <div id="aiSummaryResult"></div>
                     </div>
                     <div class="read-content ql-editor">${art.content}</div>
                     
@@ -1574,6 +1698,10 @@
         }
 
         function closeReadModal() { 
+            // Stop speech if playing
+            if(speechSynth) speechSynth.cancel();
+            isSpeaking = false;
+
             document.getElementById('readModal').style.display = 'none'; 
             
             // Clean URL
@@ -1648,6 +1776,31 @@
         function openPedomanModal() { document.getElementById('pedomanModal').style.display = 'block'; }
         function closePedomanModal() { document.getElementById('pedomanModal').style.display = 'none'; }
         window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; };
+
+        // --- TAHAP 2: SERVICE WORKER REGISTRATION (PERFORMANCE) ---
+        if ('serviceWorker' in navigator) {
+            const swContent = `
+                const CACHE_NAME = 'fercy-news-v2';
+                const urlsToCache = [
+                    '/',
+                    'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600;700;800&display=swap',
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                    'https://cdn.quilljs.com/1.3.6/quill.snow.css',
+                    'https://cdn.quilljs.com/1.3.6/quill.js'
+                ];
+                self.addEventListener('install', event => {
+                    event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+                });
+                self.addEventListener('fetch', event => {
+                    event.respondWith(caches.match(event.request).then(response => response || fetch(event.request)));
+                });
+            `;
+            const blob = new Blob([swContent], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl)
+                .then(reg => console.log('ServiceWorker registered', reg))
+                .catch(err => console.log('ServiceWorker failed', err));
+        }
     </script>
 </body>
 </html>
