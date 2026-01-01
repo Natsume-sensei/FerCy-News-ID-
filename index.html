@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0f172a">
     
-    <title>FerCy News ID Portal - Tahap 2</title>
+    <title>FerCy News ID Portal - Tahap 2 Update</title>
     <meta name="description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="metaDesc">
 
     <meta property="og:type" content="article" />
@@ -150,7 +150,8 @@
         
         .nav-tools { display: flex; align-items: center; gap: 12px; }
 
-        /* --- ADMIN BUTTON HIDDEN BY DEFAULT --- */
+        /* --- ADMIN BUTTON HIDDEN BY DEFAULT (FIXED) --- */
+        /* PERBAIKAN: Display none agar tidak muncul saat refresh */
         #adminBtn { display: none; } 
 
         /* --- BUTTONS --- */
@@ -178,7 +179,7 @@
             box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
         }
         .ai-tools-container {
-            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+            display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
         }
 
         /* --- TICKER (UPDATED FOR DARK MODE VISIBILITY) --- */
@@ -497,7 +498,7 @@
 
         /* --- MODALS & FORMS --- */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(5px); z-index: 2000; overflow-y: auto; }
-        .modal-content { background: var(--bg-card); margin: 50px auto; width: 90%; max-width: 800px; border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .modal-content { background: var(--bg-card); margin: 50px auto; width: 90%; max-width: 800px; border-radius: 20px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close { position: absolute; right: 20px; top: 20px; width: 36px; height: 36px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-main); font-size: 1.2rem; transition: var(--transition); z-index: 10; }
         .close:hover { background: var(--accent); color: white; transform: rotate(90deg); }
@@ -606,6 +607,54 @@
             .read-body h1 { font-size: 2rem; }
             .read-header { height: 250px; }
         }
+
+        /* --- UPDATE TAHAP 2 (POIN 3): Reading Features & Controls --- */
+        
+        /* 1. Reading Progress Bar (Garis indikator baca di atas Modal) */
+        .read-progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: rgba(0,0,0,0.1);
+            z-index: 2100; /* Di atas Modal */
+            display: none; /* Muncul saat modal baca dibuka */
+        }
+        .read-progress-bar {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px var(--secondary);
+        }
+
+        /* 2. Floating Text Controls (MODIFIED: Sekarang inline, bukan fixed) */
+        .text-control-box {
+            display: inline-flex; /* Diubah dari fixed ke inline-flex */
+            align-items: center;
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            padding: 5px 15px;
+            border-radius: 50px;
+            gap: 15px;
+            margin-left: 10px; /* Jarak dari tombol AI */
+        }
+        .tc-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: var(--transition);
+        }
+        .tc-btn:hover { color: var(--secondary); transform: scale(1.1); }
+        .tc-divider { width: 1px; background: var(--border); height: 20px; }
+        
     </style>
 </head>
 <body>
@@ -620,7 +669,10 @@
                 <div id="google_translate_element"></div>
                 <button id="themeToggle" class="btn btn-outline" title="Ganti Tema"><i class="fas fa-moon"></i></button>
                 <button id="adminBtn" class="btn btn-outline" onclick="handleAdminClick()"><i class="fas fa-user-lock"></i> <span id="adminText">Admin</span></button>
-                <button class="btn btn-primary" onclick="openWriteModal()"><i class="fas fa-pen-nib"></i> Tulis</button>
+                
+                <button id="navWriteBtn" class="btn btn-primary" onclick="openWriteModal()" style="display: none;">
+                    <i class="fas fa-pen-nib"></i> Tulis
+                </button>
             </div>
         </div>
     </header>
@@ -835,12 +887,17 @@
         </div>
     </div>
 
-    <div id="readModal" class="modal">
+    <div id="readModal" class="modal" onscroll="updateReadProgress()">
+        
+        <div class="read-progress-container" id="readProgressBar">
+            <div class="read-progress-bar" id="progressBarFill"></div>
+        </div>
+
         <div class="modal-content">
             <span class="close" onclick="closeReadModal()">&times;</span>
             <div id="readContentContainer"></div>
         </div>
-    </div>
+        </div>
 
     <div id="pedomanModal" class="modal">
         <div class="modal-content">
@@ -1136,8 +1193,14 @@
                 isAdmin = true;
                 document.getElementById('adminText').innerText = "Dashboard";
                 document.getElementById('adminBtn').classList.replace('btn-outline', 'btn-primary');
-                closeLoginModal(); openAdminDashboard(); 
-                alert("Login Berhasil! Selamat datang Admin.");
+                
+                // --- UPDATE: Tampilkan Tombol Tulis ---
+                document.getElementById('navWriteBtn').style.display = 'inline-flex'; 
+                // ---------------------------------------
+
+                closeLoginModal(); 
+                openAdminDashboard(); 
+                alert("Login Berhasil! Akses Penulis Diaktifkan.");
             } else { alert("Password Salah!"); }
         }
 
@@ -1301,6 +1364,22 @@
 
         function submitArticle(e) {
             e.preventDefault();
+
+            // --- UPDATE (Poin 4): CONTENT SAFETY FILTER ---
+            const sensitiveWords = ['kasar', 'bodoh', 'sara', 'judi', 'porn', 'kekerasan', 'benci', 'anarkis', 'penipuan'];
+            
+            const titleCheck = document.getElementById('postTitle').value.toLowerCase();
+            const contentCheck = quill.getText().toLowerCase(); // Ambil teks polos dari editor
+            const combinedCheck = titleCheck + " " + contentCheck;
+
+            // Cek apakah ada kata terlarang
+            const foundBadWord = sensitiveWords.find(word => combinedCheck.includes(word));
+
+            if (foundBadWord) {
+                alert(`MAAF: Artikel tidak dapat dikirim karena mengandung kata sensitif/tidak pantas: "${foundBadWord}".\n\nFerCy News ID menjunjung tinggi jurnalisme positif.`);
+                return; // Stop proses submit
+            }
+            // ------------------------------------------------
             
             const postId = document.getElementById('postId').value;
             let targetStatus = document.getElementById('targetStatus').value;
@@ -1547,8 +1626,8 @@
 
         function updateTrendingTags() {
             const trending = articles.filter(a => a.status === 'published')
-                                     .sort((a,b) => (b.views || 0) - (a.views || 0))
-                                     .slice(0, 8);
+                                             .sort((a,b) => (b.views || 0) - (a.views || 0))
+                                             .slice(0, 8);
             
             document.getElementById('trendingTags').innerHTML = trending.map(a => 
                 `<span class="tag" onclick="openReadArticle(${a.id})" style="font-size:0.8rem; display:block; margin-bottom:5px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
@@ -1660,6 +1739,15 @@
                         <button class="btn btn-outline" onclick="simulateAISummary(\`${art.content.replace(/`/g, "\\`").replace(/"/g, "&quot;")}\`)">
                             <i class="fas fa-magic"></i> Ringkas dengan AI
                         </button>
+                        
+                        <div class="text-control-box">
+                            <button class="tc-btn" onclick="adjustFontSize(-1)" title="Perkecil Teks"><i class="fas fa-minus"></i> A</button>
+                            <div class="tc-divider"></div>
+                            <button class="tc-btn" onclick="adjustFontSize(1)" title="Perbesar Teks">A <i class="fas fa-plus"></i></button>
+                            <div class="tc-divider"></div>
+                            <button class="tc-btn" onclick="resetFontSize()" title="Reset"><i class="fas fa-redo"></i></button>
+                        </div>
+
                         <div class="speaking-animation"></div>
                     </div>
                     
@@ -1679,6 +1767,10 @@
                 </div>`;
             
             document.getElementById('readModal').style.display = 'block';
+
+            // --- UPDATE: Tampilkan UX Reading Controls ---
+            document.getElementById('readProgressBar').style.display = 'block';
+            resetFontSize(); // Reset font setiap buka artikel baru
 
             if (typeof DISQUS !== 'undefined') {
                 DISQUS.reset({
@@ -1704,6 +1796,10 @@
 
             document.getElementById('readModal').style.display = 'none'; 
             
+            // --- UPDATE: Sembunyikan UX Reading Controls ---
+            document.getElementById('readProgressBar').style.display = 'none';
+            // document.getElementById('textControls').style.display = 'none'; // REMOVED: Sudah tidak pakai ID ini
+
             // Clean URL
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
@@ -1776,6 +1872,46 @@
         function openPedomanModal() { document.getElementById('pedomanModal').style.display = 'block'; }
         function closePedomanModal() { document.getElementById('pedomanModal').style.display = 'none'; }
         window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; };
+
+        // --- UPDATE TAHAP 2 (POIN 3): READING UX FUNCTIONS ---
+
+        // 1. Reading Progress Logic
+        function updateReadProgress() {
+            const modal = document.getElementById('readModal');
+            const scrollTop = modal.scrollTop;
+            const scrollHeight = modal.scrollHeight;
+            const clientHeight = modal.clientHeight;
+            
+            // Hitung persentase scroll
+            const scrolled = (scrollTop / (scrollHeight - clientHeight)) * 100;
+            document.getElementById('progressBarFill').style.width = scrolled + "%";
+        }
+
+        // 2. Text Size Control Logic
+        let currentFontSize = 16; // Ukuran default (px)
+
+        function adjustFontSize(amount) {
+            currentFontSize += amount;
+            // Batasi ukuran min 12px dan max 24px
+            if(currentFontSize < 12) currentFontSize = 12;
+            if(currentFontSize > 24) currentFontSize = 24;
+            
+            applyFontSize();
+        }
+
+        function resetFontSize() {
+            currentFontSize = 16;
+            applyFontSize();
+        }
+
+        function applyFontSize() {
+            // Targetkan area konten artikel
+            const contentArea = document.querySelector('.read-content');
+            if(contentArea) {
+                contentArea.style.fontSize = currentFontSize + "px";
+                contentArea.style.lineHeight = (currentFontSize * 1.6) + "px"; // Sesuaikan spasi baris
+            }
+        }
 
         // --- TAHAP 2: SERVICE WORKER REGISTRATION (PERFORMANCE) ---
         if ('serviceWorker' in navigator) {
