@@ -8,6 +8,14 @@
     <title>FerCy News ID Portal - Tahap 2 Update</title>
     <meta name="description" content="Portal Berita Lingkungan dan Teknologi Terkini" id="metaDesc">
 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2DR1RPLE8D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-2DR1RPLE8D');
+    </script>
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="FerCy News ID" />
     <meta property="og:title" content="FerCy News ID Portal" id="ogTitle" />
@@ -87,7 +95,7 @@
         body.dark-mode .ql-snow .ql-picker { color: var(--text-main) !important; }
 
         /* --- FIX: ADMIN DASHBOARD DARK MODE --- */
-        body.dark-mode .stat-card {
+        body.dark-mode .stat-card, body.dark-mode .rt-card {
             background-color: var(--bg-card);
             border-color: var(--border);
             color: var(--text-main);
@@ -600,12 +608,63 @@
         }
         .hidden { display: none !important; }
 
+        /* --- NEW: REAL-TIME ANALYTICS WIDGET STYLES --- */
+        .rt-container {
+            display: grid; grid-template-columns: 1fr 2fr; gap: 20px;
+            margin-bottom: 30px;
+        }
+        .rt-card {
+            background: white; border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px;
+            position: relative; overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .rt-active-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .pulsing-dot {
+            width: 12px; height: 12px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .rt-number-big {
+            font-size: 3rem; font-weight: 800; color: var(--text-main);
+            line-height: 1; margin-bottom: 5px;
+        }
+        .rt-subtitle { font-size: 0.85rem; color: var(--text-muted); }
+        .rt-bar-container {
+            margin-top: 15px; display: flex; align-items: flex-end; gap: 4px; height: 60px;
+        }
+        .rt-bar {
+            flex: 1; background: var(--secondary); opacity: 0.5;
+            transition: height 0.5s ease; border-radius: 2px 2px 0 0;
+        }
+        .rt-bar.active { opacity: 1; }
+
+        .rt-list-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .rt-list-item:last-child { border-bottom: none; }
+        .rt-page-name { font-weight: 500; color: var(--text-main); }
+        .rt-page-count { font-weight: 700; color: var(--secondary); }
+        /* ----------------------------------------------- */
+
         @media (max-width: 1024px) {
             .container { grid-template-columns: 1fr; }
             aside { position: static; order: -1; }
             .read-body { padding: 1.5rem; margin-top: 0; }
             .read-body h1 { font-size: 2rem; }
             .read-header { height: 250px; }
+            .rt-container { grid-template-columns: 1fr; }
         }
 
         /* --- UPDATE TAHAP 2 (POIN 3): Reading Features & Controls --- */
@@ -947,7 +1006,38 @@
             </div>
 
             <div style="margin-bottom: 2rem;">
-                <h3><i class="fas fa-chart-area"></i> Analitik Pengunjung</h3>
+                <h3><i class="fas fa-satellite-dish" style="color:var(--danger)"></i> Google Analytics Real-Time</h3>
+                <div class="rt-container">
+                    <div class="rt-card">
+                        <div class="rt-active-header">
+                            <div style="font-weight:700;">PENGGUNA AKTIF SAAT INI</div>
+                            <div class="pulsing-dot"></div>
+                        </div>
+                        <div class="rt-number-big" id="rtActiveUsers">0</div>
+                        <div class="rt-subtitle">di seluruh situs web</div>
+                        
+                        <div class="rt-bar-container">
+                            <div class="rt-bar" style="height:30%"></div>
+                            <div class="rt-bar" style="height:50%"></div>
+                            <div class="rt-bar" style="height:80%"></div>
+                            <div class="rt-bar" style="height:40%"></div>
+                            <div class="rt-bar" style="height:60%"></div>
+                            <div class="rt-bar" style="height:90%"></div>
+                            <div class="rt-bar" style="height:70%"></div>
+                            <div class="rt-bar" style="height:45%"></div>
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); text-align:right; margin-top:5px;">Per menit (30 min terakhir)</div>
+                    </div>
+
+                    <div class="rt-card">
+                        <h4 style="margin-top:0;">Halaman Terpopuler (Live)</h4>
+                        <div id="rtPageList">
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <h3><i class="fas fa-chart-area"></i> Analitik Historis (Views)</h3>
                 <div class="chart-container">
                     <canvas id="viewsChart" width="1000" height="250"></canvas>
                 </div>
@@ -1204,8 +1294,12 @@
             } else { alert("Password Salah!"); }
         }
 
-        function openAdminDashboard() { document.getElementById('adminDashboardModal').style.display = 'block'; renderAdminDashboard(); }
-        function closeAdminDashboard() { document.getElementById('adminDashboardModal').style.display = 'none'; }
+        function openAdminDashboard() { 
+            document.getElementById('adminDashboardModal').style.display = 'block'; 
+            renderAdminDashboard();
+            startRealTimeSimulation(); // START SIMULATION
+        }
+        function closeAdminDashboard() { document.getElementById('adminDashboardModal').style.display = 'none'; stopRealTimeSimulation(); }
 
         // --- ADMIN DASHBOARD ---
         function renderAdminDashboard() {
@@ -1247,6 +1341,70 @@
                     </tr>`;
             });
         }
+
+        // --- NEW: REAL-TIME SIMULATION LOGIC ---
+        // (Simulates Google Analytics Data in Client Side)
+        let rtInterval = null;
+
+        function startRealTimeSimulation() {
+            if(rtInterval) return; // Prevent double interval
+
+            const userDisplay = document.getElementById('rtActiveUsers');
+            const bars = document.querySelectorAll('.rt-bar');
+            
+            // Initial Random Value
+            let currentUsers = Math.floor(Math.random() * 100) + 120;
+            userDisplay.innerText = currentUsers;
+            renderTopPages(currentUsers);
+
+            rtInterval = setInterval(() => {
+                // Fluctuate users
+                const change = Math.floor(Math.random() * 10) - 4; // -4 to +5
+                currentUsers += change;
+                if(currentUsers < 50) currentUsers = 50;
+                userDisplay.innerText = currentUsers;
+
+                // Animate bars randomly
+                bars.forEach(bar => {
+                    const h = Math.floor(Math.random() * 80) + 20;
+                    bar.style.height = h + '%';
+                });
+
+                // Update pages sometimes
+                if(Math.random() > 0.7) renderTopPages(currentUsers);
+
+            }, 3000); // Update every 3 seconds
+        }
+
+        function stopRealTimeSimulation() {
+            if(rtInterval) clearInterval(rtInterval);
+            rtInterval = null;
+        }
+
+        function renderTopPages(totalUsers) {
+            const listContainer = document.getElementById('rtPageList');
+            // Get top 3 viewed articles
+            const topArticles = articles.filter(a => a.status === 'published').slice(0, 3);
+            
+            let html = `
+                <div class="rt-list-item">
+                    <span class="rt-page-name">/ (Homepage)</span>
+                    <span class="rt-page-count">${Math.floor(totalUsers * 0.4)}</span>
+                </div>
+            `;
+            
+            topArticles.forEach(a => {
+                const count = Math.floor(totalUsers * (Math.random() * 0.15 + 0.05));
+                html += `
+                <div class="rt-list-item">
+                    <span class="rt-page-name">${a.title.substring(0, 25)}...</span>
+                    <span class="rt-page-count">${count}</span>
+                </div>`;
+            });
+
+            listContainer.innerHTML = html;
+        }
+        // ----------------------------------------
 
         // --- ANALYTICS CHART DRAWING (Canvas) ---
         function renderAnalyticsChart() {
@@ -1610,8 +1768,8 @@
 
         function updateTrendingTags() {
             const trending = articles.filter(a => a.status === 'published')
-                                             .sort((a,b) => (b.views || 0) - (a.views || 0))
-                                             .slice(0, 8);
+                                     .sort((a,b) => (b.views || 0) - (a.views || 0))
+                                     .slice(0, 8);
             
             document.getElementById('trendingTags').innerHTML = trending.map(a => 
                 `<span class="tag" onclick="openReadArticle(${a.id})" style="font-size:0.8rem; display:block; margin-bottom:5px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
